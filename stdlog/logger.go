@@ -90,18 +90,34 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 	return c
 }
 
-func (p *Logger) writeFields(w io.Writer, fields ...field) {
+type byteWriter interface {
+	Write(p []byte) (n int, err error)
+	WriteByte(c byte) error
+}
+
+func (p *Logger) writeFields(w byteWriter, fields ...field) {
 	comma := false
 	if len(p.contextFields) > 0 {
+		w.WriteByte('{')
 		writeFields(w, p.contextFields, comma)
 		comma = true
 	}
 	if len(p.argsFields) > 0 {
+		if !comma {
+			w.WriteByte('{')
+		}
 		writeFields(w, p.argsFields, comma)
 		comma = true
 	}
 	if len(fields) > 0 {
+		if !comma {
+			w.WriteByte('{')
+		}
 		writeFields(w, fields, comma)
+		comma = true
+	}
+	if comma {
+		w.WriteByte('}')
 	}
 }
 
