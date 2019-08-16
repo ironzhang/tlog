@@ -29,7 +29,7 @@ type Logger struct {
 func NewLogger(base *log.Logger, opts ...Option) *Logger {
 	l := &Logger{
 		base:      base,
-		level:     &atomicLevel{value: int32(INFO)},
+		level:     newAtomicLevel(INFO),
 		calldepth: baseCalldepth,
 	}
 	for _, fn := range opts {
@@ -54,10 +54,15 @@ func (p *Logger) SetCalldepth(calldepth int) {
 	p.calldepth = baseCalldepth + calldepth
 }
 
+func (p *Logger) GetCalldepth() int {
+	return p.calldepth - baseCalldepth
+}
+
 func (p *Logger) clone() *Logger {
 	c := &Logger{
 		base:          p.base,
 		level:         p.level,
+		calldepth:     baseCalldepth,
 		argsFields:    p.argsFields,
 		contextFields: p.contextFields,
 	}

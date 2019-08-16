@@ -1,6 +1,9 @@
 package stdlog
 
-import "sync/atomic"
+import (
+	"fmt"
+	"sync/atomic"
+)
 
 type Level int32
 
@@ -31,12 +34,16 @@ func (l Level) String() string {
 	case FATAL:
 		return "FATAL"
 	default:
-		return "UNKNOWN"
+		return fmt.Sprintf("UNKNOWN(%d)", l)
 	}
 }
 
 type atomicLevel struct {
 	value int32
+}
+
+func newAtomicLevel(lv Level) *atomicLevel {
+	return &atomicLevel{value: int32(lv)}
 }
 
 func (p *atomicLevel) Load() Level {
