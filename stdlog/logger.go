@@ -11,6 +11,8 @@ import (
 	"github.com/ironzhang/tlog/logger"
 )
 
+const baseCalldepth = 2
+
 type field struct {
 	key   string
 	value interface{}
@@ -18,18 +20,22 @@ type field struct {
 
 type Logger struct {
 	base          *log.Logger
-	level         atomicLevel
+	level         *atomicLevel
 	calldepth     int
 	argsFields    []field
 	contextFields []field
 }
 
-func NewLogger(base *log.Logger, level Level, calldepth int) *Logger {
-	return &Logger{
+func NewLogger(base *log.Logger, opts ...Option) *Logger {
+	l := &Logger{
 		base:      base,
-		level:     atomicLevel{value: int32(level)},
-		calldepth: calldepth + 2,
+		level:     &atomicLevel{value: int32(INFO)},
+		calldepth: baseCalldepth,
 	}
+	for _, fn := range opts {
+		fn(l)
+	}
+	return l
 }
 
 func (p *Logger) SetLogger(l *log.Logger) {
@@ -45,11 +51,13 @@ func (p *Logger) SetLevel(l Level) {
 }
 
 func (p *Logger) SetCalldepth(calldepth int) {
-	p.calldepth = calldepth
+	p.calldepth = baseCalldepth + calldepth
 }
 
 func (p *Logger) clone() *Logger {
 	c := &Logger{
+		base:          p.base,
+		level:         p.level,
 		argsFields:    p.argsFields,
 		contextFields: p.contextFields,
 	}
@@ -63,7 +71,7 @@ func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 
 	c := p.clone()
 	c.argsFields = append(c.argsFields, sweetenFields(args)...)
-	return p
+	return c
 }
 
 func (p *Logger) WithContext(ctx context.Context) logger.Logger {
@@ -74,7 +82,7 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 
 	c := p.clone()
 	c.contextFields = append(c.contextFields, sweetenFields(args)...)
-	return p
+	return c
 }
 
 func (p *Logger) writeFields(w io.Writer, fields ...field) {
