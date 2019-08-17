@@ -11,7 +11,7 @@ import (
 	"github.com/ironzhang/tlog/logger"
 )
 
-const baseCalldepth = 2
+const baseCalldepth = 1
 
 type field struct {
 	key   string
@@ -30,7 +30,7 @@ func NewLogger(base *log.Logger, opts ...Option) *Logger {
 	l := &Logger{
 		base:      base,
 		level:     newAtomicLevel(INFO),
-		calldepth: baseCalldepth,
+		calldepth: 0,
 	}
 	for _, fn := range opts {
 		fn(l)
@@ -90,6 +90,117 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 	return c
 }
 
+func (p *Logger) Output(lv Level, calldepth int, args ...interface{}) error {
+	if p.level.Load() <= lv {
+		d := p.calldepth + calldepth + 1
+		s := p.sprint(lv, args...)
+		return p.base.Output(d, s)
+	}
+	return nil
+}
+
+func (p *Logger) Outputf(lv Level, calldepth int, format string, args ...interface{}) error {
+	if p.level.Load() <= lv {
+		d := p.calldepth + calldepth + 1
+		s := p.sprintf(lv, format, args...)
+		return p.base.Output(d, s)
+	}
+	return nil
+}
+
+func (p *Logger) Outputw(lv Level, calldepth int, message string, kvs ...interface{}) error {
+	if p.level.Load() <= lv {
+		d := p.calldepth + calldepth + 1
+		s := p.sprintw(lv, message, kvs...)
+		return p.base.Output(d, s)
+	}
+	return nil
+}
+
+func (p *Logger) Debug(args ...interface{}) {
+	p.Output(DEBUG, 2, args...)
+}
+
+func (p *Logger) Debugf(format string, args ...interface{}) {
+	p.Outputf(DEBUG, 2, format, args...)
+}
+
+func (p *Logger) Debugw(message string, kvs ...interface{}) {
+	p.Outputw(DEBUG, 2, message, kvs...)
+}
+
+func (p *Logger) Trace(args ...interface{}) {
+	p.Output(TRACE, 2, args...)
+}
+
+func (p *Logger) Tracef(format string, args ...interface{}) {
+	p.Outputf(TRACE, 2, format, args...)
+}
+
+func (p *Logger) Tracew(message string, kvs ...interface{}) {
+	p.Outputw(TRACE, 2, message, kvs...)
+}
+
+func (p *Logger) Info(args ...interface{}) {
+	p.Output(INFO, 2, args...)
+}
+
+func (p *Logger) Infof(format string, args ...interface{}) {
+	p.Outputf(INFO, 2, format, args...)
+}
+
+func (p *Logger) Infow(message string, kvs ...interface{}) {
+	p.Outputw(INFO, 2, message, kvs...)
+}
+
+func (p *Logger) Warn(args ...interface{}) {
+	p.Output(WARN, 2, args...)
+}
+
+func (p *Logger) Warnf(format string, args ...interface{}) {
+	p.Outputf(WARN, 2, format, args...)
+}
+
+func (p *Logger) Warnw(message string, kvs ...interface{}) {
+	p.Outputw(WARN, 2, message, kvs...)
+}
+
+func (p *Logger) Error(args ...interface{}) {
+	p.Output(ERROR, 2, args...)
+}
+
+func (p *Logger) Errorf(format string, args ...interface{}) {
+	p.Outputf(ERROR, 2, format, args...)
+}
+
+func (p *Logger) Errorw(message string, kvs ...interface{}) {
+	p.Outputw(ERROR, 2, message, kvs...)
+}
+
+func (p *Logger) Panic(args ...interface{}) {
+	p.Output(PANIC, 2, args...)
+}
+
+func (p *Logger) Panicf(format string, args ...interface{}) {
+	p.Outputf(PANIC, 2, format, args...)
+}
+
+func (p *Logger) Panicw(message string, kvs ...interface{}) {
+	p.Outputw(PANIC, 2, message, kvs...)
+}
+
+func (p *Logger) Fatal(args ...interface{}) {
+	p.Output(FATAL, 2, args...)
+}
+
+func (p *Logger) Fatalf(format string, args ...interface{}) {
+	p.Outputf(FATAL, 2, format, args...)
+}
+
+func (p *Logger) Fatalw(message string, kvs ...interface{}) {
+	p.Outputw(FATAL, 2, message, kvs...)
+}
+
 type byteWriter interface {
 	Write(p []byte) (n int, err error)
 	WriteByte(c byte) error
@@ -121,157 +232,31 @@ func (p *Logger) writeFields(w byteWriter, fields ...field) {
 	}
 }
 
-func (p *Logger) print(l Level, args ...interface{}) string {
+func (p *Logger) sprint(lv Level, args ...interface{}) string {
 	var buf bytes.Buffer
-	buf.WriteString("[" + l.String() + "] ")
+	buf.WriteString("[" + lv.String() + "] ")
 	fmt.Fprint(&buf, args...)
 	buf.WriteByte('\t')
 	p.writeFields(&buf)
 	return buf.String()
 }
 
-func (p *Logger) printf(l Level, format string, args ...interface{}) string {
+func (p *Logger) sprintf(lv Level, format string, args ...interface{}) string {
 	var buf bytes.Buffer
-	buf.WriteString("[" + l.String() + "] ")
+	buf.WriteString("[" + lv.String() + "] ")
 	fmt.Fprintf(&buf, format, args...)
 	buf.WriteByte('\t')
 	p.writeFields(&buf)
 	return buf.String()
 }
 
-func (p *Logger) printw(l Level, message string, kvs ...interface{}) string {
+func (p *Logger) sprintw(lv Level, message string, kvs ...interface{}) string {
 	var buf bytes.Buffer
-	buf.WriteString("[" + l.String() + "] ")
+	buf.WriteString("[" + lv.String() + "] ")
 	buf.WriteString(message)
 	buf.WriteByte('\t')
 	p.writeFields(&buf, sweetenFields(kvs)...)
 	return buf.String()
-}
-
-func (p *Logger) Debug(args ...interface{}) {
-	if p.level.Load() <= DEBUG {
-		p.base.Output(p.calldepth, p.print(DEBUG, args...))
-	}
-}
-
-func (p *Logger) Debugf(format string, args ...interface{}) {
-	if p.level.Load() <= DEBUG {
-		p.base.Output(p.calldepth, p.printf(DEBUG, format, args...))
-	}
-}
-
-func (p *Logger) Debugw(message string, kvs ...interface{}) {
-	if p.level.Load() <= DEBUG {
-		p.base.Output(p.calldepth, p.printw(DEBUG, message, kvs...))
-	}
-}
-
-func (p *Logger) Trace(args ...interface{}) {
-	if p.level.Load() <= TRACE {
-		p.base.Output(p.calldepth, p.print(TRACE, args...))
-	}
-}
-
-func (p *Logger) Tracef(format string, args ...interface{}) {
-	if p.level.Load() <= TRACE {
-		p.base.Output(p.calldepth, p.printf(TRACE, format, args...))
-	}
-}
-
-func (p *Logger) Tracew(message string, kvs ...interface{}) {
-	if p.level.Load() <= TRACE {
-		p.base.Output(p.calldepth, p.printw(TRACE, message, kvs...))
-	}
-}
-
-func (p *Logger) Info(args ...interface{}) {
-	if p.level.Load() <= INFO {
-		p.base.Output(p.calldepth, p.print(INFO, args...))
-	}
-}
-
-func (p *Logger) Infof(format string, args ...interface{}) {
-	if p.level.Load() <= INFO {
-		p.base.Output(p.calldepth, p.printf(INFO, format, args...))
-	}
-}
-
-func (p *Logger) Infow(message string, kvs ...interface{}) {
-	if p.level.Load() <= INFO {
-		p.base.Output(p.calldepth, p.printw(INFO, message, kvs...))
-	}
-}
-
-func (p *Logger) Warn(args ...interface{}) {
-	if p.level.Load() <= WARN {
-		p.base.Output(p.calldepth, p.print(WARN, args...))
-	}
-}
-
-func (p *Logger) Warnf(format string, args ...interface{}) {
-	if p.level.Load() <= WARN {
-		p.base.Output(p.calldepth, p.printf(WARN, format, args...))
-	}
-}
-
-func (p *Logger) Warnw(message string, kvs ...interface{}) {
-	if p.level.Load() <= WARN {
-		p.base.Output(p.calldepth, p.printf(WARN, message, kvs...))
-	}
-}
-
-func (p *Logger) Error(args ...interface{}) {
-	if p.level.Load() <= ERROR {
-		p.base.Output(p.calldepth, p.print(ERROR, args...))
-	}
-
-}
-func (p *Logger) Errorf(format string, args ...interface{}) {
-	if p.level.Load() <= ERROR {
-		p.base.Output(p.calldepth, p.printf(ERROR, format, args...))
-	}
-}
-
-func (p *Logger) Errorw(message string, kvs ...interface{}) {
-	if p.level.Load() <= ERROR {
-		p.base.Output(p.calldepth, p.printw(ERROR, message, kvs...))
-	}
-}
-
-func (p *Logger) Panic(args ...interface{}) {
-	if p.level.Load() <= PANIC {
-		p.base.Output(p.calldepth, p.print(PANIC, args...))
-	}
-
-}
-func (p *Logger) Panicf(format string, args ...interface{}) {
-	if p.level.Load() <= PANIC {
-		p.base.Output(p.calldepth, p.printf(PANIC, format, args...))
-	}
-
-}
-func (p *Logger) Panicw(message string, kvs ...interface{}) {
-	if p.level.Load() <= PANIC {
-		p.base.Output(p.calldepth, p.printw(PANIC, message, kvs...))
-	}
-}
-
-func (p *Logger) Fatal(args ...interface{}) {
-	if p.level.Load() <= FATAL {
-		p.base.Output(p.calldepth, p.print(FATAL, args...))
-	}
-}
-
-func (p *Logger) Fatalf(format string, args ...interface{}) {
-	if p.level.Load() <= FATAL {
-		p.base.Output(p.calldepth, p.printf(FATAL, format, args...))
-	}
-}
-
-func (p *Logger) Fatalw(message string, kvs ...interface{}) {
-	if p.level.Load() <= FATAL {
-		p.base.Output(p.calldepth, p.printw(FATAL, message, kvs...))
-	}
 }
 
 func sweetenFields(args []interface{}) []field {
@@ -283,13 +268,13 @@ func sweetenFields(args []interface{}) []field {
 	for i := 0; i < len(args); i += 2 {
 		key, ok := args[i].(string)
 		if !ok {
-			key = fmt.Sprintf("!{%d:%v}", i, args[i])
+			key = fmt.Sprintf("!#%d:%v#", i, args[i])
 		}
 		var val interface{}
 		if i+1 < len(args) {
 			val = args[i+1]
 		} else {
-			val = "!{ignored}"
+			val = "!#ignored#"
 		}
 		fields = append(fields, field{key: key, value: val})
 	}
