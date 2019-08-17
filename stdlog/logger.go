@@ -11,8 +11,6 @@ import (
 	"github.com/ironzhang/tlog/logger"
 )
 
-const baseCalldepth = 1
-
 type field struct {
 	key   string
 	value interface{}
@@ -51,18 +49,17 @@ func (p *Logger) SetLevel(l Level) {
 }
 
 func (p *Logger) SetCalldepth(calldepth int) {
-	p.calldepth = baseCalldepth + calldepth
+	p.calldepth = calldepth
 }
 
 func (p *Logger) GetCalldepth() int {
-	return p.calldepth - baseCalldepth
+	return p.calldepth
 }
 
 func (p *Logger) clone() *Logger {
 	c := &Logger{
 		base:          p.base,
 		level:         p.level,
-		calldepth:     baseCalldepth,
 		argsFields:    p.argsFields,
 		contextFields: p.contextFields,
 	}
