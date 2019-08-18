@@ -87,33 +87,6 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 	return c
 }
 
-func (p *Logger) Output(lv Level, calldepth int, args ...interface{}) error {
-	if p.level.Load() <= lv {
-		d := p.calldepth + calldepth + 1
-		s := p.sprint(lv, args...)
-		return p.base.Output(d, s)
-	}
-	return nil
-}
-
-func (p *Logger) Outputf(lv Level, calldepth int, format string, args ...interface{}) error {
-	if p.level.Load() <= lv {
-		d := p.calldepth + calldepth + 1
-		s := p.sprintf(lv, format, args...)
-		return p.base.Output(d, s)
-	}
-	return nil
-}
-
-func (p *Logger) Outputw(lv Level, calldepth int, message string, kvs ...interface{}) error {
-	if p.level.Load() <= lv {
-		d := p.calldepth + calldepth + 1
-		s := p.sprintw(lv, message, kvs...)
-		return p.base.Output(d, s)
-	}
-	return nil
-}
-
 func (p *Logger) Debug(args ...interface{}) {
 	p.Output(DEBUG, 2, args...)
 }
@@ -198,6 +171,60 @@ func (p *Logger) Fatalw(message string, kvs ...interface{}) {
 	p.Outputw(FATAL, 2, message, kvs...)
 }
 
+func (p *Logger) Output(lv Level, calldepth int, args ...interface{}) error {
+	if p.level.Load() <= lv {
+		d := p.calldepth + calldepth + 1
+		s := p.sprint(lv, args...)
+		return p.base.Output(d, s)
+	}
+	return nil
+}
+
+func (p *Logger) Outputf(lv Level, calldepth int, format string, args ...interface{}) error {
+	if p.level.Load() <= lv {
+		d := p.calldepth + calldepth + 1
+		s := p.sprintf(lv, format, args...)
+		return p.base.Output(d, s)
+	}
+	return nil
+}
+
+func (p *Logger) Outputw(lv Level, calldepth int, message string, kvs ...interface{}) error {
+	if p.level.Load() <= lv {
+		d := p.calldepth + calldepth + 1
+		s := p.sprintw(lv, message, kvs...)
+		return p.base.Output(d, s)
+	}
+	return nil
+}
+
+func (p *Logger) sprint(lv Level, args ...interface{}) string {
+	var buf bytes.Buffer
+	buf.WriteString("[" + lv.String() + "] ")
+	fmt.Fprint(&buf, args...)
+	buf.WriteByte('\t')
+	p.writeFields(&buf)
+	return buf.String()
+}
+
+func (p *Logger) sprintf(lv Level, format string, args ...interface{}) string {
+	var buf bytes.Buffer
+	buf.WriteString("[" + lv.String() + "] ")
+	fmt.Fprintf(&buf, format, args...)
+	buf.WriteByte('\t')
+	p.writeFields(&buf)
+	return buf.String()
+}
+
+func (p *Logger) sprintw(lv Level, message string, kvs ...interface{}) string {
+	var buf bytes.Buffer
+	buf.WriteString("[" + lv.String() + "] ")
+	buf.WriteString(message)
+	buf.WriteByte('\t')
+	p.writeFields(&buf, sweetenFields(kvs)...)
+	return buf.String()
+}
+
 type byteWriter interface {
 	Write(p []byte) (n int, err error)
 	WriteByte(c byte) error
@@ -229,31 +256,27 @@ func (p *Logger) writeFields(w byteWriter, fields ...field) {
 	}
 }
 
-func (p *Logger) sprint(lv Level, args ...interface{}) string {
-	var buf bytes.Buffer
-	buf.WriteString("[" + lv.String() + "] ")
-	fmt.Fprint(&buf, args...)
-	buf.WriteByte('\t')
-	p.writeFields(&buf)
-	return buf.String()
+func writeFields(w io.Writer, fields []field, comma bool) {
+	for _, f := range fields {
+		if comma {
+			fmt.Fprintf(w, ", ")
+		} else {
+			comma = true
+		}
+		fmt.Fprintf(w, "%q: %s", f.key, marshal(f.value))
+	}
 }
 
-func (p *Logger) sprintf(lv Level, format string, args ...interface{}) string {
-	var buf bytes.Buffer
-	buf.WriteString("[" + lv.String() + "] ")
-	fmt.Fprintf(&buf, format, args...)
-	buf.WriteByte('\t')
-	p.writeFields(&buf)
-	return buf.String()
-}
-
-func (p *Logger) sprintw(lv Level, message string, kvs ...interface{}) string {
-	var buf bytes.Buffer
-	buf.WriteString("[" + lv.String() + "] ")
-	buf.WriteString(message)
-	buf.WriteByte('\t')
-	p.writeFields(&buf, sweetenFields(kvs)...)
-	return buf.String()
+func marshal(a interface{}) string {
+	switch v := a.(type) {
+	case error:
+		return "\"" + v.Error() + "\""
+	case fmt.Stringer:
+		return "\"" + v.String() + "\""
+	default:
+		data, _ := json.Marshal(a)
+		return string(data)
+	}
 }
 
 func sweetenFields(args []interface{}) []field {
@@ -276,27 +299,4 @@ func sweetenFields(args []interface{}) []field {
 		fields = append(fields, field{key: key, value: val})
 	}
 	return fields
-}
-
-func writeFields(w io.Writer, fields []field, comma bool) {
-	for _, f := range fields {
-		if comma {
-			fmt.Fprintf(w, ", ")
-		} else {
-			comma = true
-		}
-		fmt.Fprintf(w, "%q: %s", f.key, marshal(f.value))
-	}
-}
-
-func marshal(a interface{}) string {
-	switch v := a.(type) {
-	case error:
-		return "\"" + v.Error() + "\""
-	case fmt.Stringer:
-		return "\"" + v.String() + "\""
-	default:
-		data, _ := json.Marshal(a)
-		return string(data)
-	}
 }

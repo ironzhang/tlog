@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -79,5 +80,27 @@ func TestLogger(t *testing.T) {
 		logw("hello, world", "function", "TestLogger")
 		logw("hello, world", 100, "TestLogger")
 		logw("hello, world", 100, "TestLogger", "last")
+	}
+}
+
+func TestSweetenFields(t *testing.T) {
+	tests := []struct {
+		args   []interface{}
+		fields []field
+	}{
+		{
+			args: []interface{}{"n", 1},
+			fields: []field{
+				{key: "n", value: 1},
+			},
+		},
+	}
+	for i, tt := range tests {
+		fields := sweetenFields(tt.args)
+		if got, want := fields, tt.fields; !reflect.DeepEqual(got, want) {
+			t.Errorf("%d: fields: got %v, want %v", i, got, want)
+		} else {
+			t.Logf("%d: fields: got %v", i, got)
+		}
 	}
 }
