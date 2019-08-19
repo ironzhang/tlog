@@ -26,6 +26,7 @@ type field struct {
 type Logger struct {
 	base          *log.Logger
 	level         *atomicLevel
+	hook          logger.ContextHookFunc
 	calldepth     int
 	argsFields    []field
 	contextFields []field
@@ -38,6 +39,7 @@ func NewLogger(base *log.Logger, opts ...Option) *Logger {
 	l := &Logger{
 		base:      base,
 		level:     newAtomicLevel(INFO),
+		hook:      nil,
 		calldepth: 0,
 	}
 	for _, fn := range opts {
@@ -69,6 +71,10 @@ func (p *Logger) GetCalldepth() int {
 	return p.calldepth
 }
 
+func (p *Logger) SetContextHook(hook logger.ContextHookFunc) {
+	p.hook = hook
+}
+
 func (p *Logger) clone() *Logger {
 	c := &Logger{
 		base:          p.base,
@@ -90,7 +96,10 @@ func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 }
 
 func (p *Logger) WithContext(ctx context.Context) logger.Logger {
-	args := logger.WithContextHook(ctx)
+	if p.hook == nil {
+		return p
+	}
+	args := p.hook(ctx)
 	if len(args) <= 0 {
 		return p
 	}

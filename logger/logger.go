@@ -38,6 +38,4 @@ type Logger interface {
 	Fatalw(message string, kvs ...interface{})
 }
 
-var WithContextHook = func(ctx context.Context) []interface{} {
-	return nil
-}
+type ContextHookFunc func(ctx context.Context) []interface{}
