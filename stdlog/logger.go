@@ -7,9 +7,16 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 
 	"github.com/ironzhang/tlog/logger"
 )
+
+var ExitFunc = os.Exit
+
+var PanicFunc = func(v interface{}) {
+	panic(v)
+}
 
 type field struct {
 	key   string
@@ -25,6 +32,9 @@ type Logger struct {
 }
 
 func NewLogger(base *log.Logger, opts ...Option) *Logger {
+	if base == nil {
+		panic("base is nil")
+	}
 	l := &Logger{
 		base:      base,
 		level:     newAtomicLevel(INFO),
@@ -36,8 +46,11 @@ func NewLogger(base *log.Logger, opts ...Option) *Logger {
 	return l
 }
 
-func (p *Logger) SetLogger(l *log.Logger) {
-	p.base = l
+func (p *Logger) SetLogger(base *log.Logger) {
+	if base == nil {
+		panic("base is nil")
+	}
+	p.base = base
 }
 
 func (p *Logger) GetLevel() Level {

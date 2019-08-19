@@ -1,11 +1,14 @@
 package stdlog
 
 import (
+	"context"
 	"io"
 	"log"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/ironzhang/tlog/logger"
 )
 
 func NewBaseLogger() *log.Logger {
@@ -81,6 +84,28 @@ func TestLogger(t *testing.T) {
 		logw("hello, world", 100, "TestLogger")
 		logw("hello, world", 100, "TestLogger", "last")
 	}
+}
+
+func TestLoggerWithArgs(t *testing.T) {
+	base := NewBaseLogger()
+	//base.SetOutput(ioutil.Discard)
+	lg := NewLogger(base, SetCalldepth(1))
+	lg.SetLevel(DEBUG)
+	lg.Debugw("hello, TestLoggerWithArgs")
+	lg.WithArgs("function", "TestLoggerWithArgs").Debugw("hello, TestLoggerWithArgs")
+}
+
+func TestLoggerWithContext(t *testing.T) {
+	logger.WithContextHook = func(ctx context.Context) []interface{} {
+		return []interface{}{"TraceID", "123466", "SpanID", "1"}
+	}
+
+	base := NewBaseLogger()
+	//base.SetOutput(ioutil.Discard)
+	lg := NewLogger(base, SetCalldepth(1))
+	lg.SetLevel(DEBUG)
+	lg.Debugw("hello, TestLoggerWithContext")
+	lg.WithContext(context.Background()).Debugw("hello, TestLoggerWithContext")
 }
 
 func TestSweetenFields(t *testing.T) {
