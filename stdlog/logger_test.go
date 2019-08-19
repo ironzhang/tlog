@@ -2,12 +2,23 @@ package stdlog
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"os"
 	"reflect"
 	"testing"
 )
+
+func TestMain(m *testing.M) {
+	PanicFunc = func(v interface{}) {
+		fmt.Fprintf(os.Stderr, "panic: %v\n", v)
+	}
+	ExitFunc = func(code int) {
+		fmt.Fprintf(os.Stderr, "exit: %d\n", code)
+	}
+	m.Run()
+}
 
 func NewBaseLogger() *log.Logger {
 	var w io.Writer
@@ -26,6 +37,7 @@ func TestLoggerOutput(t *testing.T) {
 		log.Output(lv, 1, "hello", "world")
 	}
 	for lv := DEBUG; lv <= FATAL; lv++ {
+		log.Outputf(lv, 1, "hello, world")
 		log.Outputf(lv, 1, "%s hello, world", lv)
 	}
 	for lv := DEBUG; lv <= FATAL; lv++ {

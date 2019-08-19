@@ -195,86 +195,73 @@ func (p *Logger) Fatalw(message string, kvs ...interface{}) {
 
 func (p *Logger) Output(lv Level, calldepth int, args ...interface{}) error {
 	if p.level.Load() <= lv {
-		d := p.calldepth + calldepth + 1
-		s := p.sprint(lv, args...)
-		return p.base.Output(d, s)
+		return p.log(lv, calldepth+1, "", args, nil)
 	}
 	return nil
 }
 
 func (p *Logger) Outputf(lv Level, calldepth int, format string, args ...interface{}) error {
 	if p.level.Load() <= lv {
-		d := p.calldepth + calldepth + 1
-		s := p.sprintf(lv, format, args...)
-		return p.base.Output(d, s)
+		return p.log(lv, calldepth+1, format, args, nil)
 	}
 	return nil
 }
 
 func (p *Logger) Outputw(lv Level, calldepth int, message string, kvs ...interface{}) error {
 	if p.level.Load() <= lv {
-		d := p.calldepth + calldepth + 1
-		s := p.sprintw(lv, message, kvs...)
-		return p.base.Output(d, s)
+		return p.log(lv, calldepth+1, message, nil, kvs)
 	}
 	return nil
 }
 
-func (p *Logger) sprint(lv Level, args ...interface{}) string {
-	var buf bytes.Buffer
-	buf.WriteString("[" + lv.String() + "] ")
-	fmt.Fprint(&buf, args...)
-	buf.WriteByte('\t')
-	p.writeFields(&buf)
-	return buf.String()
+func (p *Logger) log(lv Level, calldepth int, template string, args []interface{}, kvs []interface{}) error {
+	d := p.calldepth + calldepth + 1
+	s := p.sprint(lv, template, args, kvs)
+	err := p.base.Output(d, s)
+	switch lv {
+	case PANIC:
+		PanicFunc(s)
+	case FATAL:
+		ExitFunc(1)
+	}
+	return err
 }
 
-func (p *Logger) sprintf(lv Level, format string, args ...interface{}) string {
+func (p *Logger) sprint(lv Level, template string, args []interface{}, kvs []interface{}) string {
 	var buf bytes.Buffer
 	buf.WriteString("[" + lv.String() + "] ")
-	fmt.Fprintf(&buf, format, args...)
-	buf.WriteByte('\t')
-	p.writeFields(&buf)
-	return buf.String()
-}
-
-func (p *Logger) sprintw(lv Level, message string, kvs ...interface{}) string {
-	var buf bytes.Buffer
-	buf.WriteString("[" + lv.String() + "] ")
-	buf.WriteString(message)
-	buf.WriteByte('\t')
+	if template == "" {
+		fmt.Fprint(&buf, args...)
+	} else {
+		fmt.Fprintf(&buf, template, args...)
+	}
 	p.writeFields(&buf, sweetenFields(kvs)...)
 	return buf.String()
 }
 
-type byteWriter interface {
-	Write(p []byte) (n int, err error)
-	WriteByte(c byte) error
-}
-
-func (p *Logger) writeFields(w byteWriter, fields ...field) {
+func (p *Logger) writeFields(w io.Writer, fields ...field) {
 	comma := false
 	if len(p.contextFields) > 0 {
-		w.WriteByte('{')
+		fmt.Fprintf(w, "\t{")
 		writeFields(w, p.contextFields, comma)
 		comma = true
 	}
 	if len(p.argsFields) > 0 {
 		if !comma {
-			w.WriteByte('{')
+			fmt.Fprintf(w, "\t{")
 		}
 		writeFields(w, p.argsFields, comma)
 		comma = true
 	}
 	if len(fields) > 0 {
 		if !comma {
-			w.WriteByte('{')
+			fmt.Fprintf(w, "\t{")
 		}
 		writeFields(w, fields, comma)
 		comma = true
 	}
 	if comma {
-		w.WriteByte('}')
+		fmt.Fprintf(w, "}")
 	}
 }
 
