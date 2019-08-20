@@ -2,14 +2,18 @@ package tlog_test
 
 import (
 	"log"
-	"os"
 	"testing"
 
 	"github.com/ironzhang/tlog"
+	"github.com/natefinch/lumberjack"
 )
 
 func TestLog(t *testing.T) {
-	tlog.Default.SetLogger(log.New(os.Stderr, "", log.LstdFlags|log.Llongfile))
+	w := &lumberjack.Logger{
+		Filename: "./test.log",
+	}
+	defer w.Close()
+	tlog.Default.SetLogger(log.New(w, "", log.LstdFlags|log.Llongfile))
 
 	tlog.Debug("hello")
 	tlog.Info("hello")
