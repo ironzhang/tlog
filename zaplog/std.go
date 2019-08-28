@@ -1,6 +1,8 @@
 package zaplog
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+)
 
 var Std *Logger
 
