@@ -16,10 +16,22 @@ type Logger struct {
 	args []zap.Field
 }
 
-func NewLogger(base *zap.Logger) *Logger {
-	return &Logger{
+func NewLogger(base *zap.Logger, opts ...Option) *Logger {
+	l := &Logger{
 		base: base.WithOptions(zap.AddCallerSkip(1)),
 	}
+	for _, op := range opts {
+		op(l)
+	}
+	return l
+}
+
+func (p *Logger) WithOptions(opts ...Option) *Logger {
+	c := p.clone()
+	for _, op := range opts {
+		op(c)
+	}
+	return c
 }
 
 func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
