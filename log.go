@@ -2,18 +2,25 @@ package tlog
 
 import (
 	"context"
-	"log"
-	"os"
 
 	"github.com/ironzhang/tlog/logger"
-	"github.com/ironzhang/tlog/stdlog"
+	"github.com/ironzhang/tlog/zaplog"
+	"go.uber.org/zap"
 )
 
-var Default *stdlog.Logger
+var Default *zaplog.Logger
 var logging logger.Logger
 
 func init() {
-	Default = stdlog.NewLogger(log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile), stdlog.SetCalldepth(1))
+	cfg := zap.NewDevelopmentConfig()
+	cfg.DisableStacktrace = true
+	cfg.Level.SetLevel(zap.DebugLevel)
+	base, err := cfg.Build(zap.AddCallerSkip(1))
+	if err != nil {
+		panic(err)
+	}
+
+	Default = zaplog.NewLogger(base)
 	logging = Default
 }
 
