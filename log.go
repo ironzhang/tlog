@@ -1,13 +1,6 @@
 package tlog
 
-import (
-	"context"
-
-	"github.com/ironzhang/tlog/logger"
-	"github.com/ironzhang/tlog/zaplog"
-)
-
-var logging logger.Logger = &nopLogger{}
+var logging Logger = &nopLogger{}
 
 var (
 	WithArgs    = logging.WithArgs
@@ -42,7 +35,7 @@ var (
 	Fatalw = logging.Fatalw
 )
 
-func SetLogger(l logger.Logger) logger.Logger {
+func SetLogger(l Logger) Logger {
 	prev := logging
 	if l == nil {
 		logging = &nopLogger{}
@@ -75,34 +68,4 @@ func SetLogger(l logger.Logger) logger.Logger {
 	Fatalw = logging.Fatalw
 
 	return prev
-}
-
-type nopLogger struct{}
-
-func (p *nopLogger) WithArgs(args ...interface{}) logger.Logger    { return p }
-func (p *nopLogger) WithContext(ctx context.Context) logger.Logger { return p }
-func (p *nopLogger) Trace(args ...interface{})                     {}
-func (p *nopLogger) Tracef(format string, args ...interface{})     {}
-func (p *nopLogger) Tracew(message string, kvs ...interface{})     {}
-func (p *nopLogger) Debug(args ...interface{})                     {}
-func (p *nopLogger) Debugf(format string, args ...interface{})     {}
-func (p *nopLogger) Debugw(message string, kvs ...interface{})     {}
-func (p *nopLogger) Info(args ...interface{})                      {}
-func (p *nopLogger) Infof(format string, args ...interface{})      {}
-func (p *nopLogger) Infow(message string, kvs ...interface{})      {}
-func (p *nopLogger) Warn(args ...interface{})                      {}
-func (p *nopLogger) Warnf(format string, args ...interface{})      {}
-func (p *nopLogger) Warnw(message string, kvs ...interface{})      {}
-func (p *nopLogger) Error(args ...interface{})                     {}
-func (p *nopLogger) Errorf(format string, args ...interface{})     {}
-func (p *nopLogger) Errorw(message string, kvs ...interface{})     {}
-func (p *nopLogger) Panic(args ...interface{})                     {}
-func (p *nopLogger) Panicf(format string, args ...interface{})     {}
-func (p *nopLogger) Panicw(message string, kvs ...interface{})     {}
-func (p *nopLogger) Fatal(args ...interface{})                     {}
-func (p *nopLogger) Fatalf(format string, args ...interface{})     {}
-func (p *nopLogger) Fatalw(message string, kvs ...interface{})     {}
-
-func init() {
-	SetLogger(zaplog.Std)
 }

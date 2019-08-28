@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ironzhang/tlog/logger"
+	"github.com/ironzhang/tlog"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -16,7 +16,7 @@ const (
 
 type Logger struct {
 	base *zap.Logger
-	hook logger.ContextHookFunc
+	hook tlog.ContextHookFunc
 	ctxs []zap.Field
 	args []zap.Field
 }
@@ -39,7 +39,7 @@ func (p *Logger) WithOptions(opts ...Option) *Logger {
 	return c
 }
 
-func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
+func (p *Logger) WithArgs(args ...interface{}) tlog.Logger {
 	if len(args) <= 0 {
 		return p
 	}
@@ -48,7 +48,7 @@ func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 	return c
 }
 
-func (p *Logger) WithContext(ctx context.Context) logger.Logger {
+func (p *Logger) WithContext(ctx context.Context) tlog.Logger {
 	if p.hook == nil {
 		return p
 	}
