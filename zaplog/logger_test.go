@@ -11,7 +11,7 @@ import (
 func NewZapLogger(t *testing.T) *zap.Logger {
 	cfg := zap.NewDevelopmentConfig()
 	cfg.DisableStacktrace = true
-	cfg.Level.SetLevel(zap.DebugLevel)
+	cfg.Level.SetLevel(TraceLevel)
 	//l, err := cfg.Build(zap.AddStacktrace(zap.NewAtomicLevelAt(zap.DPanicLevel)))
 	l, err := cfg.Build()
 	if err != nil {
@@ -51,8 +51,8 @@ func TestLoggerLog(t *testing.T) {
 
 	type Func func(...interface{})
 	funcs := []Func{
-		lg.Debug,
 		lg.Trace,
+		lg.Debug,
 		lg.Info,
 		lg.Warn,
 		lg.Error,
@@ -70,8 +70,8 @@ func TestLoggerLogf(t *testing.T) {
 
 	type Func func(string, ...interface{})
 	funcs := []Func{
-		lg.Debugf,
 		lg.Tracef,
+		lg.Debugf,
 		lg.Infof,
 		lg.Warnf,
 		lg.Errorf,
@@ -89,8 +89,8 @@ func TestLoggerLogw(t *testing.T) {
 
 	type Func func(string, ...interface{})
 	funcs := []Func{
-		lg.Debugw,
 		lg.Tracew,
+		lg.Debugw,
 		lg.Infow,
 		lg.Warnw,
 		lg.Errorw,

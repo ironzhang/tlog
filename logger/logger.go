@@ -9,13 +9,13 @@ type Logger interface {
 	WithArgs(args ...interface{}) Logger
 	WithContext(ctx context.Context) Logger
 
-	Debug(args ...interface{})
-	Debugf(format string, args ...interface{})
-	Debugw(message string, kvs ...interface{})
-
 	Trace(args ...interface{})
 	Tracef(format string, args ...interface{})
 	Tracew(message string, kvs ...interface{})
+
+	Debug(args ...interface{})
+	Debugf(format string, args ...interface{})
+	Debugw(message string, kvs ...interface{})
 
 	Info(args ...interface{})
 	Infof(format string, args ...interface{})

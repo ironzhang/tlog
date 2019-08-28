@@ -5,123 +5,104 @@ import (
 
 	"github.com/ironzhang/tlog/logger"
 	"github.com/ironzhang/tlog/zaplog"
-	"go.uber.org/zap"
 )
 
-var Default *zaplog.Logger
-var logging logger.Logger
+var logging logger.Logger = &nopLogger{}
 
-func init() {
-	cfg := zap.NewDevelopmentConfig()
-	cfg.DisableStacktrace = true
-	cfg.Level.SetLevel(zap.DebugLevel)
-	base, err := cfg.Build(zap.AddCallerSkip(1))
-	if err != nil {
-		panic(err)
-	}
+var (
+	WithArgs    = logging.WithArgs
+	WithContext = logging.WithContext
 
-	Default = zaplog.NewLogger(base)
-	logging = Default
-}
+	Trace  = logging.Trace
+	Tracef = logging.Tracef
+	Tracew = logging.Tracew
+
+	Debug  = logging.Debug
+	Debugf = logging.Debugf
+	Debugw = logging.Debugw
+
+	Info  = logging.Info
+	Infof = logging.Infof
+	Infow = logging.Infow
+
+	Warn  = logging.Warn
+	Warnf = logging.Warnf
+	Warnw = logging.Warnw
+
+	Error  = logging.Error
+	Errorf = logging.Errorf
+	Errorw = logging.Errorw
+
+	Panic  = logging.Panic
+	Panicf = logging.Panicf
+	Panicw = logging.Panicw
+
+	Fatal  = logging.Fatal
+	Fatalf = logging.Fatalf
+	Fatalw = logging.Fatalw
+)
 
 func SetLogger(l logger.Logger) logger.Logger {
 	prev := logging
 	if l == nil {
-		logging = Default
+		logging = &nopLogger{}
 	} else {
 		logging = l
 	}
+
+	WithArgs = logging.WithArgs
+	WithContext = logging.WithContext
+	Trace = logging.Trace
+	Tracef = logging.Tracef
+	Tracew = logging.Tracew
+	Debug = logging.Debug
+	Debugf = logging.Debugf
+	Debugw = logging.Debugw
+	Info = logging.Info
+	Infof = logging.Infof
+	Infow = logging.Infow
+	Warn = logging.Warn
+	Warnf = logging.Warnf
+	Warnw = logging.Warnw
+	Error = logging.Error
+	Errorf = logging.Errorf
+	Errorw = logging.Errorw
+	Panic = logging.Panic
+	Panicf = logging.Panicf
+	Panicw = logging.Panicw
+	Fatal = logging.Fatal
+	Fatalf = logging.Fatalf
+	Fatalw = logging.Fatalw
+
 	return prev
 }
 
-func WithArgs(args ...interface{}) logger.Logger {
-	return logging.WithArgs(args...)
-}
+type nopLogger struct{}
 
-func WithContext(ctx context.Context) logger.Logger {
-	return logging.WithContext(ctx)
-}
+func (p *nopLogger) WithArgs(args ...interface{}) logger.Logger    { return p }
+func (p *nopLogger) WithContext(ctx context.Context) logger.Logger { return p }
+func (p *nopLogger) Trace(args ...interface{})                     {}
+func (p *nopLogger) Tracef(format string, args ...interface{})     {}
+func (p *nopLogger) Tracew(message string, kvs ...interface{})     {}
+func (p *nopLogger) Debug(args ...interface{})                     {}
+func (p *nopLogger) Debugf(format string, args ...interface{})     {}
+func (p *nopLogger) Debugw(message string, kvs ...interface{})     {}
+func (p *nopLogger) Info(args ...interface{})                      {}
+func (p *nopLogger) Infof(format string, args ...interface{})      {}
+func (p *nopLogger) Infow(message string, kvs ...interface{})      {}
+func (p *nopLogger) Warn(args ...interface{})                      {}
+func (p *nopLogger) Warnf(format string, args ...interface{})      {}
+func (p *nopLogger) Warnw(message string, kvs ...interface{})      {}
+func (p *nopLogger) Error(args ...interface{})                     {}
+func (p *nopLogger) Errorf(format string, args ...interface{})     {}
+func (p *nopLogger) Errorw(message string, kvs ...interface{})     {}
+func (p *nopLogger) Panic(args ...interface{})                     {}
+func (p *nopLogger) Panicf(format string, args ...interface{})     {}
+func (p *nopLogger) Panicw(message string, kvs ...interface{})     {}
+func (p *nopLogger) Fatal(args ...interface{})                     {}
+func (p *nopLogger) Fatalf(format string, args ...interface{})     {}
+func (p *nopLogger) Fatalw(message string, kvs ...interface{})     {}
 
-func Debug(args ...interface{}) {
-	logging.Debug(args...)
-}
-
-func Debugf(format string, args ...interface{}) {
-	logging.Debugf(format, args...)
-}
-
-func Debugw(message string, kvs ...interface{}) {
-	logging.Debugw(message, kvs...)
-}
-
-func Trace(args ...interface{}) {
-	logging.Trace(args...)
-}
-
-func Tracef(format string, args ...interface{}) {
-	logging.Tracef(format, args...)
-}
-
-func Tracew(message string, kvs ...interface{}) {
-	logging.Tracew(message, kvs...)
-}
-
-func Info(args ...interface{}) {
-	logging.Info(args...)
-}
-
-func Infof(format string, args ...interface{}) {
-	logging.Infof(format, args...)
-}
-
-func Infow(message string, kvs ...interface{}) {
-	logging.Infow(message, kvs...)
-}
-
-func Warn(args ...interface{}) {
-	logging.Warn(args...)
-}
-
-func Warnf(format string, args ...interface{}) {
-	logging.Warnf(format, args...)
-}
-
-func Warnw(message string, kvs ...interface{}) {
-	logging.Warnw(message, kvs...)
-}
-
-func Error(args ...interface{}) {
-	logging.Error(args...)
-}
-
-func Errorf(format string, args ...interface{}) {
-	logging.Errorf(format, args...)
-}
-
-func Errorw(message string, kvs ...interface{}) {
-	logging.Errorw(message, kvs...)
-}
-
-func Panic(args ...interface{}) {
-	logging.Panic(args...)
-}
-
-func Panicf(format string, args ...interface{}) {
-	logging.Panicf(format, args...)
-}
-
-func Panicw(message string, kvs ...interface{}) {
-	logging.Panicw(message, kvs...)
-}
-
-func Fatal(args ...interface{}) {
-	logging.Fatal(args...)
-}
-
-func Fatalf(format string, args ...interface{}) {
-	logging.Fatalf(format, args...)
-}
-
-func Fatalw(message string, kvs ...interface{}) {
-	logging.Fatalw(message, kvs...)
+func init() {
+	SetLogger(zaplog.Std)
 }

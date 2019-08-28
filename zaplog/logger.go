@@ -2,11 +2,16 @@ package zaplog
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/ironzhang/tlog/logger"
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+)
+
+const (
+	TraceLevel = zap.DebugLevel - 1
 )
 
 type Logger struct {
@@ -56,6 +61,26 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 	return c
 }
 
+func (p *Logger) Trace(args ...interface{}) {
+	msg := fmt.Sprint(args...)
+	if ce := p.Base().Check(TraceLevel, msg); ce != nil {
+		ce.Write()
+	}
+}
+
+func (p *Logger) Tracef(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	if ce := p.Base().Check(TraceLevel, msg); ce != nil {
+		ce.Write()
+	}
+}
+
+func (p *Logger) Tracew(message string, kvs ...interface{}) {
+	if ce := p.Base().Check(TraceLevel, message); ce != nil {
+		ce.Write(p.sweetenFields(kvs)...)
+	}
+}
+
 func (p *Logger) Debug(args ...interface{}) {
 	p.Sugar().Debug(args...)
 }
@@ -65,18 +90,6 @@ func (p *Logger) Debugf(format string, args ...interface{}) {
 }
 
 func (p *Logger) Debugw(message string, kvs ...interface{}) {
-	p.Sugar().Debugw(message, kvs...)
-}
-
-func (p *Logger) Trace(args ...interface{}) {
-	p.Sugar().Debug(args...)
-}
-
-func (p *Logger) Tracef(format string, args ...interface{}) {
-	p.Sugar().Debugf(format, args...)
-}
-
-func (p *Logger) Tracew(message string, kvs ...interface{}) {
 	p.Sugar().Debugw(message, kvs...)
 }
 
