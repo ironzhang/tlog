@@ -1,13 +1,16 @@
 package zapx
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
 type Output struct {
-	Level zap.AtomicLevel
-	Paths []string
+	MinLevel zap.AtomicLevel
+	MaxLevel zap.AtomicLevel
+	Paths    []string
 }
 
 // Config offers a declarative way to construct a logger. It doesn't do
@@ -70,4 +73,30 @@ type Config struct {
 
 func (cfg Config) Build() (*zap.Logger, error) {
 	return nil, nil
+}
+
+func (cfg Config) buildEncoder() (zapcore.Encoder, error) {
+	return newEncoder(cfg.Encoding, cfg.EncoderConfig)
+}
+
+func (cfg Config) buildCore(enc zapcore.Encoder, out Output) (zapcore.Core, error) {
+	sink, _, err := zap.Open(out.Paths...)
+	if err != nil {
+		return nil, err
+	}
+
+	zapcore.NewCore(enc, sink, out.MinLevel)
+
+	return nil, nil
+}
+
+func newEncoder(name string, encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
+	switch name {
+	case "console":
+		return zapcore.NewConsoleEncoder(encoderConfig), nil
+	case "json":
+		return zapcore.NewJSONEncoder(encoderConfig), nil
+	default:
+		return nil, fmt.Errorf("encoder %q is not supported", name)
+	}
 }
