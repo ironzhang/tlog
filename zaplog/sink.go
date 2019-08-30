@@ -1,4 +1,4 @@
-package zapx
+package zaplog
 
 import (
 	"fmt"
@@ -9,33 +9,11 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type sink interface {
-	Name() string
-	zap.Sink
-}
-
-type nameSink struct {
-	name string
-	zap.Sink
-}
-
-func newSink(name string, rawURL string) (sink, error) {
+func newSink(rawURL string) (zap.Sink, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("can not parse %q as a URL: %v", rawURL, err)
 	}
-	s, err := newZapSink(u)
-	if err != nil {
-		return nil, fmt.Errorf("can not new a zap sink: %v", err)
-	}
-	return &nameSink{name: name, Sink: s}, nil
-}
-
-func (s *nameSink) Name() string {
-	return s.name
-}
-
-func newZapSink(u *url.URL) (zap.Sink, error) {
 	switch u.Scheme {
 	case "file":
 		return newFileSink(u)

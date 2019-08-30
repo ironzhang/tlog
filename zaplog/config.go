@@ -1,4 +1,4 @@
-package zapx
+package zaplog
 
 import (
 	"fmt"
@@ -33,7 +33,7 @@ type Config struct {
 }
 
 func (p Output) build() (zap.Sink, error) {
-	return newSink(p.Name, p.Path)
+	return newSink(p.Path)
 }
 
 func (p Category) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
@@ -114,4 +114,13 @@ func (p Config) build(options ...zap.Option) (*zap.Logger, func(), error) {
 		return nil, nil, err
 	}
 	return zap.New(core, options...), close, nil
+}
+
+func (p Config) BuildZapLogger(options ...zap.Option) (*zap.Logger, error) {
+	logger, _, err := p.build(options...)
+	return logger, err
+}
+
+func (p Config) Build() (*Logger, error) {
+	return nil, nil
 }
