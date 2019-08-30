@@ -8,95 +8,83 @@ import (
 )
 
 type Output struct {
-	MinLevel zap.AtomicLevel
-	MaxLevel zap.AtomicLevel
-	Paths    []string
+	Name string `json:"name" yaml:"name"`
+	Path string `json:"path" yaml:"path"`
 }
 
-// Config offers a declarative way to construct a logger. It doesn't do
-// anything that can't be done with New, Options, and the various
-// zapcore.WriteSyncer and zapcore.Core wrappers, but it's a simpler way to
-// toggle common options.
-//
-// Note that Config intentionally supports only the most common options. More
-// unusual logging setups (logging to network connections or message queues,
-// splitting output between multiple files, etc.) are possible, but require
-// direct use of the zapcore package. For sample code, see the package-level
-// BasicConfiguration and AdvancedConfiguration examples.
-//
-// For an example showing runtime log level changes, see the documentation for
-// AtomicLevel.
-type Config struct {
-	// Level is the minimum enabled logging level. Note that this is a dynamic
-	// level, so calling Config.Level.SetLevel will atomically change the log
-	// level of all loggers descended from this config.
-	Level zap.AtomicLevel `json:"level" yaml:"level"`
-
-	// Development puts the logger in development mode, which changes the
-	// behavior of DPanicLevel and takes stacktraces more liberally.
-	Development bool `json:"development" yaml:"development"`
-
-	// DisableCaller stops annotating logs with the calling function's file
-	// name and line number. By default, all logs are annotated.
-	DisableCaller bool `json:"disableCaller" yaml:"disableCaller"`
-
-	// DisableStacktrace completely disables automatic stacktrace capturing. By
-	// default, stacktraces are captured for WarnLevel and above logs in
-	// development and ErrorLevel and above in production.
-	DisableStacktrace bool `json:"disableStacktrace" yaml:"disableStacktrace"`
-
-	// Sampling sets a sampling policy. A nil SamplingConfig disables sampling.
-	Sampling *zap.SamplingConfig `json:"sampling" yaml:"sampling"`
-
-	// Encoding sets the logger's encoding. Valid values are "json" and
-	// "console", as well as any third-party encodings registered via
-	// RegisterEncoder.
-	Encoding string `json:"encoding" yaml:"encoding"`
-
-	// EncoderConfig sets options for the chosen encoder. See
-	// zapcore.EncoderConfig for details.
+type Catalog struct {
+	MinLevel      zapcore.Level         `json:"minLevel" yaml:"minLevel"`
+	MaxLevel      zapcore.Level         `json:"maxLevel" yaml:"maxLevel"`
+	Encoding      string                `json:"encoding" yaml:"encoding"`
 	EncoderConfig zapcore.EncoderConfig `json:"encoderConfig" yaml:"encoderConfig"`
-
-	Outputs []Output `json:"outputs" yaml:"outputs"`
-
-	// ErrorOutputPaths is a list of URLs to write internal logger errors to.
-	// The default is standard error.
-	//
-	// Note that this setting only affects internal errors; for sample code that
-	// sends error-level logs to a different location from info- and debug-level
-	// logs, see the package-level AdvancedConfiguration example.
-	ErrorOutputPaths []string `json:"errorOutputPaths" yaml:"errorOutputPaths"`
-
-	// InitialFields is a collection of fields to add to the root logger.
-	InitialFields map[string]interface{} `json:"initialFields" yaml:"initialFields"`
+	Outputs       []string
 }
 
-func (cfg Config) Build() (*zap.Logger, error) {
-	return nil, nil
+type Config struct {
+	Level             zap.AtomicLevel        `json:"level" yaml:"level"`
+	Development       bool                   `json:"development" yaml:"development"`
+	DisableCaller     bool                   `json:"disableCaller" yaml:"disableCaller"`
+	DisableStacktrace bool                   `json:"disableStacktrace" yaml:"disableStacktrace"`
+	Outputs           []Output               `json:"outputs" yaml:"outputs"`
+	Catalogs          []Catalog              `json:"catalog" yaml:"catalog"`
+	ErrorOutputPaths  []string               `json:"errorOutputPaths" yaml:"errorOutputPaths"`
+	InitialFields     map[string]interface{} `json:"initialFields" yaml:"initialFields"`
 }
 
-func (cfg Config) buildEncoder() (zapcore.Encoder, error) {
-	return newEncoder(cfg.Encoding, cfg.EncoderConfig)
+func (p Output) build() (Sink, error) {
+	return newSink(p.Name, p.Path)
 }
 
-func (cfg Config) buildCore(enc zapcore.Encoder, out Output) (zapcore.Core, error) {
-	sink, _, err := zap.Open(out.Paths...)
+func (p Catalog) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
+	ws := make([]zapcore.WriteSyncer, 0, len(p.Outputs))
+	for _, name := range p.Outputs {
+		w, ok := outputs[name]
+		if !ok {
+			return nil, fmt.Errorf("%q output object is not existed", name)
+		}
+		ws = append(ws, w)
+	}
+
+	enc, err := newEncoder(p.Encoding, p.EncoderConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	zapcore.NewCore(enc, sink, out.MinLevel)
+	enab := zap.LevelEnablerFunc(func(l zapcore.Level) bool {
+		if l < p.MinLevel || l > p.MaxLevel {
+			return false
+		}
+		return lvl.Enabled(l)
+	})
 
-	return nil, nil
+	return zapcore.NewCore(enc, zap.CombineWriteSyncers(ws...), enab), nil
 }
 
-func newEncoder(name string, encoderConfig zapcore.EncoderConfig) (zapcore.Encoder, error) {
-	switch name {
-	case "console":
-		return zapcore.NewConsoleEncoder(encoderConfig), nil
-	case "json":
-		return zapcore.NewJSONEncoder(encoderConfig), nil
-	default:
-		return nil, fmt.Errorf("encoder %q is not supported", name)
+func (p Config) buildOutputs() (map[string]Sink, error) {
+	sinks := make(map[string]Sink, len(p.Outputs))
+	close := func() {
+		for _, s := range sinks {
+			s.Close()
+		}
 	}
+
+	for _, out := range p.Outputs {
+		sink, err := out.build()
+		if err != nil {
+			close()
+			return nil, err
+		}
+		if _, ok := sinks[out.Name]; ok {
+			sink.Close()
+			close()
+			return nil, fmt.Errorf("%q output object is already existed", out.Name)
+		}
+		sinks[out.Name] = sink
+	}
+
+	return sinks, nil
+}
+
+func (p Config) build() (*zap.Logger, error) {
+	return nil, nil
 }
