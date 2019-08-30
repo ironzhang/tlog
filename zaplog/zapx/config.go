@@ -2,6 +2,7 @@ package zapx
 
 import (
 	"fmt"
+	"io"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -12,7 +13,7 @@ type Output struct {
 	Path string `json:"path" yaml:"path"`
 }
 
-type Catalog struct {
+type Category struct {
 	MinLevel      zapcore.Level         `json:"minLevel" yaml:"minLevel"`
 	MaxLevel      zapcore.Level         `json:"maxLevel" yaml:"maxLevel"`
 	Encoding      string                `json:"encoding" yaml:"encoding"`
@@ -26,16 +27,23 @@ type Config struct {
 	DisableCaller     bool                   `json:"disableCaller" yaml:"disableCaller"`
 	DisableStacktrace bool                   `json:"disableStacktrace" yaml:"disableStacktrace"`
 	Outputs           []Output               `json:"outputs" yaml:"outputs"`
-	Catalogs          []Catalog              `json:"catalog" yaml:"catalog"`
+	Categories        []Category             `json:"categories" yaml:"categories"`
 	ErrorOutputPaths  []string               `json:"errorOutputPaths" yaml:"errorOutputPaths"`
 	InitialFields     map[string]interface{} `json:"initialFields" yaml:"initialFields"`
 }
 
-func (p Output) build() (Sink, error) {
+func (p Output) build() (zap.Sink, error) {
 	return newSink(p.Name, p.Path)
 }
 
-func (p Catalog) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
+func (p Category) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
+	// 构建日志编码器
+	enc, err := newEncoder(p.Encoding, p.EncoderConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建日志输出对象列表
 	ws := make([]zapcore.WriteSyncer, 0, len(p.Outputs))
 	for _, name := range p.Outputs {
 		w, ok := outputs[name]
@@ -45,11 +53,7 @@ func (p Catalog) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSync
 		ws = append(ws, w)
 	}
 
-	enc, err := newEncoder(p.Encoding, p.EncoderConfig)
-	if err != nil {
-		return nil, err
-	}
-
+	// 构建日志分级输出规则
 	enab := zap.LevelEnablerFunc(func(l zapcore.Level) bool {
 		if l < p.MinLevel || l > p.MaxLevel {
 			return false
@@ -60,11 +64,12 @@ func (p Catalog) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSync
 	return zapcore.NewCore(enc, zap.CombineWriteSyncers(ws...), enab), nil
 }
 
-func (p Config) buildOutputs() (map[string]Sink, error) {
-	sinks := make(map[string]Sink, len(p.Outputs))
+func (p Config) buildOutputs() (map[string]zapcore.WriteSyncer, func(), error) {
+	writers := make(map[string]zapcore.WriteSyncer, len(p.Outputs))
+	closers := make([]io.Closer, 0, len(p.Outputs))
 	close := func() {
-		for _, s := range sinks {
-			s.Close()
+		for _, c := range closers {
+			c.Close()
 		}
 	}
 
@@ -72,19 +77,41 @@ func (p Config) buildOutputs() (map[string]Sink, error) {
 		sink, err := out.build()
 		if err != nil {
 			close()
-			return nil, err
+			return nil, nil, err
 		}
-		if _, ok := sinks[out.Name]; ok {
-			sink.Close()
+		closers = append(closers, sink)
+
+		if _, ok := writers[out.Name]; ok {
 			close()
-			return nil, fmt.Errorf("%q output object is already existed", out.Name)
+			return nil, nil, fmt.Errorf("%q output object is already existed", out.Name)
 		}
-		sinks[out.Name] = sink
+		writers[out.Name] = sink
 	}
 
-	return sinks, nil
+	return writers, close, nil
 }
 
-func (p Config) build() (*zap.Logger, error) {
-	return nil, nil
+func (p Config) buildCore(outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
+	cores := make([]zapcore.Core, 0, len(p.Categories))
+	for _, cate := range p.Categories {
+		core, err := cate.build(p.Level, outputs)
+		if err != nil {
+			return nil, err
+		}
+		cores = append(cores, core)
+	}
+	return zapcore.NewTee(cores...), nil
+}
+
+func (p Config) build(options ...zap.Option) (*zap.Logger, func(), error) {
+	outputs, close, err := p.buildOutputs()
+	if err != nil {
+		return nil, nil, err
+	}
+	core, err := p.buildCore(outputs)
+	if err != nil {
+		close()
+		return nil, nil, err
+	}
+	return zap.New(core, options...), close, nil
 }

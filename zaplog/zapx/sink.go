@@ -9,19 +9,17 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type Sink interface {
+type sink interface {
 	Name() string
 	zap.Sink
 }
 
-type sinkList []Sink
-
-type sink struct {
+type nameSink struct {
 	name string
 	zap.Sink
 }
 
-func newSink(name string, rawURL string) (Sink, error) {
+func newSink(name string, rawURL string) (sink, error) {
 	u, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, fmt.Errorf("can not parse %q as a URL: %v", rawURL, err)
@@ -30,10 +28,10 @@ func newSink(name string, rawURL string) (Sink, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can not new a zap sink: %v", err)
 	}
-	return &sink{name: name, Sink: s}, nil
+	return &nameSink{name: name, Sink: s}, nil
 }
 
-func (s *sink) Name() string {
+func (s *nameSink) Name() string {
 	return s.name
 }
 
