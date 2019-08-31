@@ -2,7 +2,7 @@ package zaplog
 
 import (
 	"fmt"
-	"io"
+	"sort"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -26,14 +26,14 @@ type Config struct {
 	Development       bool                   `json:"development" yaml:"development"`
 	DisableCaller     bool                   `json:"disableCaller" yaml:"disableCaller"`
 	DisableStacktrace bool                   `json:"disableStacktrace" yaml:"disableStacktrace"`
+	ErrorOutputPaths  []string               `json:"errorOutputPaths" yaml:"errorOutputPaths"`
 	Outputs           []Output               `json:"outputs" yaml:"outputs"`
 	Categories        []Category             `json:"categories" yaml:"categories"`
-	ErrorOutputPaths  []string               `json:"errorOutputPaths" yaml:"errorOutputPaths"`
 	InitialFields     map[string]interface{} `json:"initialFields" yaml:"initialFields"`
 }
 
-func (p Output) build() (zap.Sink, error) {
-	return newSink(p.Path)
+func (p Output) build() (zapcore.WriteSyncer, func(), error) {
+	return zap.Open(p.Path)
 }
 
 func (p Category) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
@@ -64,31 +64,44 @@ func (p Category) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyn
 	return zapcore.NewCore(enc, zap.CombineWriteSyncers(ws...), enab), nil
 }
 
-func (p Config) buildOutputs() (map[string]zapcore.WriteSyncer, func(), error) {
+func (p Config) buildErrorOutputs() (zapcore.WriteSyncer, func(), error) {
+	return zap.Open(p.ErrorOutputPaths...)
+}
+
+func (p Config) buildOutputs() (map[string]zapcore.WriteSyncer, zapcore.WriteSyncer, func(), error) {
 	writers := make(map[string]zapcore.WriteSyncer, len(p.Outputs))
-	closers := make([]io.Closer, 0, len(p.Outputs))
+	closers := make([]func(), 0, len(p.Outputs))
 	close := func() {
-		for _, c := range closers {
-			c.Close()
+		for _, f := range closers {
+			f()
 		}
 	}
 
+	// 构建输出对象
 	for _, out := range p.Outputs {
-		sink, err := out.build()
+		sink, closer, err := out.build()
 		if err != nil {
 			close()
-			return nil, nil, err
+			return nil, nil, nil, err
 		}
-		closers = append(closers, sink)
+		closers = append(closers, closer)
 
 		if _, ok := writers[out.Name]; ok {
 			close()
-			return nil, nil, fmt.Errorf("%q output object is already existed", out.Name)
+			return nil, nil, nil, fmt.Errorf("%q output object is already existed", out.Name)
 		}
 		writers[out.Name] = sink
 	}
 
-	return writers, close, nil
+	// 构建错误输出对象
+	errSink, closer, err := p.buildErrorOutputs()
+	if err != nil {
+		close()
+		return nil, nil, nil, err
+	}
+	closers = append(closers, closer)
+
+	return writers, errSink, close, nil
 }
 
 func (p Config) buildCore(outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
@@ -103,8 +116,42 @@ func (p Config) buildCore(outputs map[string]zapcore.WriteSyncer) (zapcore.Core,
 	return zapcore.NewTee(cores...), nil
 }
 
-func (p Config) build(options ...zap.Option) (*zap.Logger, func(), error) {
-	outputs, close, err := p.buildOutputs()
+func (p Config) buildOptions(errOutput zapcore.WriteSyncer) []zap.Option {
+	opts := []zap.Option{zap.ErrorOutput(errOutput)}
+
+	if p.Development {
+		opts = append(opts, zap.Development())
+	}
+	if !p.DisableCaller {
+		opts = append(opts, zap.AddCaller())
+	}
+
+	stackLevel := zap.ErrorLevel
+	if p.Development {
+		stackLevel = zap.WarnLevel
+	}
+	if !p.DisableStacktrace {
+		opts = append(opts, zap.AddStacktrace(stackLevel))
+	}
+
+	if len(p.InitialFields) > 0 {
+		fs := make([]zap.Field, 0, len(p.InitialFields))
+		keys := make([]string, 0, len(p.InitialFields))
+		for k := range p.InitialFields {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		for _, k := range keys {
+			fs = append(fs, zap.Any(k, p.InitialFields[k]))
+		}
+		opts = append(opts, zap.Fields(fs...))
+	}
+
+	return opts
+}
+
+func (p Config) build(opts ...zap.Option) (*zap.Logger, func(), error) {
+	outputs, errOutput, close, err := p.buildOutputs()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -113,7 +160,11 @@ func (p Config) build(options ...zap.Option) (*zap.Logger, func(), error) {
 		close()
 		return nil, nil, err
 	}
-	return zap.New(core, options...), close, nil
+	log := zap.New(core, p.buildOptions(errOutput)...)
+	if len(opts) > 0 {
+		log = log.WithOptions(opts...)
+	}
+	return log, close, nil
 }
 
 func (p Config) BuildZapLogger(options ...zap.Option) (*zap.Logger, error) {

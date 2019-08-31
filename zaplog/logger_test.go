@@ -2,12 +2,10 @@ package zaplog
 
 import (
 	"context"
-	"os"
 	"reflect"
 	"testing"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
 func NewZapLogger(t *testing.T) *zap.Logger {
@@ -121,22 +119,22 @@ func TestLoggerWithContext(t *testing.T) {
 	log.WithArgs("args", 1).WithContext(context.Background()).Debug("hello, world")
 }
 
-func TestTee(t *testing.T) {
-	encoderCfg := zapcore.EncoderConfig{
-		MessageKey:     "msg",
-		LevelKey:       "level",
-		NameKey:        "logger",
-		EncodeLevel:    zapcore.LowercaseLevelEncoder,
-		EncodeTime:     zapcore.ISO8601TimeEncoder,
-		EncodeDuration: zapcore.StringDurationEncoder,
-	}
-
-	f1, _ := os.Create("./debug.log")
-	f2, _ := os.Create("./info.log")
-	core1 := zapcore.NewCore(zapcore.NewJSONEncoder(encoderCfg), f1, zap.DebugLevel)
-	core2 := zapcore.NewCore(zapcore.NewJSONEncoder(encoderCfg), f2, zap.InfoLevel)
-	core := zapcore.NewTee(core1, core2)
-	logger := zap.New(core)
-	logger.Debug("debug")
-	logger.Info("info")
-}
+//func TestTee(t *testing.T) {
+//	encoderCfg := zapcore.EncoderConfig{
+//		MessageKey:     "msg",
+//		LevelKey:       "level",
+//		NameKey:        "logger",
+//		EncodeLevel:    zapcore.LowercaseLevelEncoder,
+//		EncodeTime:     zapcore.ISO8601TimeEncoder,
+//		EncodeDuration: zapcore.StringDurationEncoder,
+//	}
+//
+//	f1, _ := os.Create("./debug.log")
+//	f2, _ := os.Create("./info.log")
+//	core1 := zapcore.NewCore(zapcore.NewJSONEncoder(encoderCfg), f1, zap.DebugLevel)
+//	core2 := zapcore.NewCore(zapcore.NewJSONEncoder(encoderCfg), f2, zap.InfoLevel)
+//	core := zapcore.NewTee(core1, core2)
+//	logger := zap.New(core)
+//	logger.Debug("debug")
+//	logger.Info("info")
+//}
