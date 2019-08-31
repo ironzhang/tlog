@@ -167,11 +167,10 @@ func (p Config) build(opts ...zap.Option) (*zap.Logger, func(), error) {
 	return log, close, nil
 }
 
-func (p Config) BuildZapLogger(options ...zap.Option) (*zap.Logger, error) {
-	logger, _, err := p.build(options...)
-	return logger, err
-}
-
-func (p Config) Build() (*Logger, error) {
-	return nil, nil
+func (p Config) Build(opts ...zap.Option) (*Logger, error) {
+	base, _, err := p.build(opts...)
+	if err != nil {
+		return nil, err
+	}
+	return NewLogger(base), nil
 }
