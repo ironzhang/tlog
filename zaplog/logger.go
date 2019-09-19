@@ -1,14 +1,6 @@
 package zaplog
 
-import (
-	"context"
-	"fmt"
-
-	"github.com/ironzhang/tlog"
-	"go.uber.org/multierr"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-)
+/*
 
 const (
 	TraceLevel = zap.DebugLevel - 1
@@ -249,3 +241,4 @@ func (ps invalidPairs) MarshalLogArray(enc zapcore.ArrayEncoder) error {
 	}
 	return err
 }
+*/

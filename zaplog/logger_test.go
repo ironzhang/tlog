@@ -1,13 +1,6 @@
 package zaplog
 
-import (
-	"context"
-	"reflect"
-	"testing"
-
-	"go.uber.org/zap"
-)
-
+/*
 func NewZapLogger(t *testing.T) *zap.Logger {
 	cfg := zap.NewDevelopmentConfig()
 	cfg.DisableStacktrace = true
@@ -138,3 +131,4 @@ func TestLoggerWithContext(t *testing.T) {
 //	logger.Debug("debug")
 //	logger.Info("info")
 //}
+*/

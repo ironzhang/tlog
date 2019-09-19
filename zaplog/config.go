@@ -1,37 +1,39 @@
 package zaplog
 
 import (
-	"fmt"
-	"sort"
-
-	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-type Output struct {
+type Sink struct {
 	Name string `json:"name" yaml:"name"`
-	Path string `json:"path" yaml:"path"`
+	URL  string `json:"url" yaml:"url"`
 }
 
 type Category struct {
-	MinLevel      zapcore.Level         `json:"minLevel" yaml:"minLevel"`
-	MaxLevel      zapcore.Level         `json:"maxLevel" yaml:"maxLevel"`
+	MinLevel zapcore.Level `json:"minLevel" yaml:"minLevel"`
+	MaxLevel zapcore.Level `json:"maxLevel" yaml:"maxLevel"`
+	Sinks    []string
+}
+
+type Namespace struct {
+	Name          string
 	Encoding      string                `json:"encoding" yaml:"encoding"`
 	EncoderConfig zapcore.EncoderConfig `json:"encoderConfig" yaml:"encoderConfig"`
-	Outputs       []string
+	Categories    []Category            `json:"categories" yaml:"categories"`
 }
 
 type Config struct {
-	Level             zap.AtomicLevel        `json:"level" yaml:"level"`
-	Development       bool                   `json:"development" yaml:"development"`
-	DisableCaller     bool                   `json:"disableCaller" yaml:"disableCaller"`
-	DisableStacktrace bool                   `json:"disableStacktrace" yaml:"disableStacktrace"`
-	ErrorOutputPaths  []string               `json:"errorOutputPaths" yaml:"errorOutputPaths"`
-	Outputs           []Output               `json:"outputs" yaml:"outputs"`
-	Categories        []Category             `json:"categories" yaml:"categories"`
-	InitialFields     map[string]interface{} `json:"initialFields" yaml:"initialFields"`
+	Level             zapcore.Level         `json:"level" yaml:"level"`
+	DisableCaller     bool                  `json:"disableCaller" yaml:"disableCaller"`
+	DisableStacktrace bool                  `json:"disableStacktrace" yaml:"disableStacktrace"`
+	Sinks             []Sink                `json:"sinks" yaml:"sinks"`
+	Encoding          string                `json:"encoding" yaml:"encoding"`
+	EncoderConfig     zapcore.EncoderConfig `json:"encoderConfig" yaml:"encoderConfig"`
+	Categories        []Category            `json:"categories" yaml:"categories"`
+	Namespaces        []Namespace           `json:"namespaces" yaml:"namespaces"`
 }
 
+/*
 func (p Output) build() (zapcore.WriteSyncer, func(), error) {
 	return zap.Open(p.Path)
 }
@@ -174,3 +176,4 @@ func (p Config) Build(opts ...zap.Option) (*Logger, error) {
 	}
 	return NewLogger(base), nil
 }
+*/
