@@ -31,6 +31,13 @@ type Config struct {
 	Loggers  []Logger
 }
 
+var Default = Config{
+	Level: "",
+	Default: Logger{
+		Name: "",
+	},
+}
+
 var Example = Config{
 	Level: "InfoLevel",
 	Sinks: []Sink{
@@ -65,10 +72,10 @@ var Example = Config{
 			URLs:     []string{"file://log/{{.Process}}/fatal.log"},
 		},
 		{
-			Name:     "dirpc-sink",
+			Name:     "zerone-sink",
 			MinLevel: "DebugLevel",
 			MaxLevel: "FatalLevel",
-			URLs:     []string{"file://log/{{.Process}}/dirpc.log"},
+			URLs:     []string{"file://log/{{.Process}}/zerone.log"},
 		},
 		{
 			Name:     "access-sink",
@@ -104,7 +111,7 @@ var Example = Config{
 	},
 	Default: Logger{
 		Name:    "",
-		Encoder: "default-encoder",
+		Encoder: "",
 		Sinks:   []string{"debug-sink", "info-sink", "warn-sink", "error-sink", "fatal-sink"},
 	},
 	Loggers: []Logger{
@@ -114,9 +121,9 @@ var Example = Config{
 			Sinks:   []string{"access-sink"},
 		},
 		{
-			Name:    "git.xiaojukeji.com/lego/dirpc",
+			Name:    "github.com/ironzhang/zerone",
 			Encoder: "default-encoder",
-			Sinks:   []string{"dirpc-sink"},
+			Sinks:   []string{"zerone-sink"},
 		},
 	},
 }
