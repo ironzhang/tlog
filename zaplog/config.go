@@ -1,179 +1,106 @@
 package zaplog
 
 import (
-	"go.uber.org/zap/zapcore"
+	"encoding/json"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
-type Sink struct {
-	Name string `json:"name" yaml:"name"`
-	URL  string `json:"url" yaml:"url"`
+type StreamConfig struct {
+	Name     string   `json:"name" yaml:"name"`
+	MinLevel Level    `json:"minLevel" yaml:"minLevel"`
+	MaxLevel Level    `json:"maxLevel" yaml:"maxLevel"`
+	URLs     []string `json:"urls" yaml:"urls"`
 }
 
-type Category struct {
-	MinLevel zapcore.Level `json:"minLevel" yaml:"minLevel"`
-	MaxLevel zapcore.Level `json:"maxLevel" yaml:"maxLevel"`
-	Sinks    []string
+type EncoderConfig struct {
+	Name          string `json:"name" yaml:"name"`
+	Encoding      string `json:"encoding" yaml:"encoding"`
+	MessageKey    string `json:"messageKey" yaml:"messageKey"`
+	LevelKey      string `json:"levelKey" yaml:"levelKey"`
+	TimeKey       string `json:"timeKey" yaml:"timeKey"`
+	NameKey       string `json:"nameKey" yaml:"nameKey"`
+	CallerKey     string `json:"callerKey" yaml:"callerKey"`
+	StacktraceKey string `json:"stacktraceKey" yaml:"stacktraceKey"`
+	LineEnding    string `json:"lineEnding" yaml:"lineEnding"`
+	//	EncodeLevel    LevelEncoder    `json:"levelEncoder" yaml:"levelEncoder"`
+	//	EncodeTime     TimeEncoder     `json:"timeEncoder" yaml:"timeEncoder"`
+	//	EncodeDuration DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`
+	//	EncodeCaller   CallerEncoder   `json:"callerEncoder" yaml:"callerEncoder"`
+	//	EncodeName     NameEncoder     `json:"nameEncoder" yaml:"nameEncoder"`
 }
 
-type Namespace struct {
-	Name          string
-	Encoding      string                `json:"encoding" yaml:"encoding"`
-	EncoderConfig zapcore.EncoderConfig `json:"encoderConfig" yaml:"encoderConfig"`
-	Categories    []Category            `json:"categories" yaml:"categories"`
+type LoggerConfig struct {
+	Name    string   `json:"name" yaml:"name"`
+	Encoder string   `json:"encoder" yaml:"encoder"`
+	Streams []string `json:"streams" yaml:"streams"`
 }
 
 type Config struct {
-	Level             zapcore.Level         `json:"level" yaml:"level"`
-	DisableCaller     bool                  `json:"disableCaller" yaml:"disableCaller"`
-	DisableStacktrace bool                  `json:"disableStacktrace" yaml:"disableStacktrace"`
-	Sinks             []Sink                `json:"sinks" yaml:"sinks"`
-	Encoding          string                `json:"encoding" yaml:"encoding"`
-	EncoderConfig     zapcore.EncoderConfig `json:"encoderConfig" yaml:"encoderConfig"`
-	Categories        []Category            `json:"categories" yaml:"categories"`
-	Namespaces        []Namespace           `json:"namespaces" yaml:"namespaces"`
+	Level    Level           `json:"level" yaml:"level"`
+	Streams  []StreamConfig  `json:"streams" yaml:"streams"`
+	Encoders []EncoderConfig `json:"encoders" yaml:"encoders"`
+	Default  LoggerConfig    `json:"default" yaml:"default"`
+	Loggers  []LoggerConfig  `json:"loggers" yaml:"loggers"`
 }
 
-/*
-func (p Output) build() (zapcore.WriteSyncer, func(), error) {
-	return zap.Open(p.Path)
+func LoadConfig(file string) (Config, error) {
+	readFile := readJSON
+	switch strings.ToUpper(filepath.Ext(file)) {
+	case ".JSON":
+		readFile = readJSON
+	case ".YAML":
+		readFile = readYAML
+	}
+
+	var cfg Config
+	if err := readFile(file, &cfg); err != nil {
+		return cfg, err
+	}
+	return cfg, nil
 }
 
-func (p Category) build(lvl zap.AtomicLevel, outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
-	// 构建日志编码器
-	enc, err := newEncoder(p.Encoding, p.EncoderConfig)
+func WriteConfig(file string, cfg Config) error {
+	switch strings.ToUpper(filepath.Ext(file)) {
+	case ".JSON":
+		return writeJSON(file, cfg)
+	case ".YAML":
+		return writeYAML(file, cfg)
+	}
+	return writeJSON(file, cfg)
+}
+
+func readJSON(file string, a interface{}) error {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	// 构建日志输出对象列表
-	ws := make([]zapcore.WriteSyncer, 0, len(p.Outputs))
-	for _, name := range p.Outputs {
-		w, ok := outputs[name]
-		if !ok {
-			return nil, fmt.Errorf("%q output object is not existed", name)
-		}
-		ws = append(ws, w)
-	}
-
-	// 构建日志分级输出规则
-	enab := zap.LevelEnablerFunc(func(l zapcore.Level) bool {
-		if l < p.MinLevel || l > p.MaxLevel {
-			return false
-		}
-		return lvl.Enabled(l)
-	})
-
-	return zapcore.NewCore(enc, zap.CombineWriteSyncers(ws...), enab), nil
+	return json.Unmarshal(data, a)
 }
 
-func (p Config) buildErrorOutputs() (zapcore.WriteSyncer, func(), error) {
-	return zap.Open(p.ErrorOutputPaths...)
-}
-
-func (p Config) buildOutputs() (map[string]zapcore.WriteSyncer, zapcore.WriteSyncer, func(), error) {
-	writers := make(map[string]zapcore.WriteSyncer, len(p.Outputs))
-	closers := make([]func(), 0, len(p.Outputs))
-	close := func() {
-		for _, f := range closers {
-			f()
-		}
-	}
-
-	// 构建输出对象
-	for _, out := range p.Outputs {
-		sink, closer, err := out.build()
-		if err != nil {
-			close()
-			return nil, nil, nil, err
-		}
-		closers = append(closers, closer)
-
-		if _, ok := writers[out.Name]; ok {
-			close()
-			return nil, nil, nil, fmt.Errorf("%q output object is already existed", out.Name)
-		}
-		writers[out.Name] = sink
-	}
-
-	// 构建错误输出对象
-	errSink, closer, err := p.buildErrorOutputs()
+func writeJSON(file string, a interface{}) error {
+	data, err := json.MarshalIndent(a, "", "\t")
 	if err != nil {
-		close()
-		return nil, nil, nil, err
+		return err
 	}
-	closers = append(closers, closer)
-
-	return writers, errSink, close, nil
+	return ioutil.WriteFile(file, data, 0666)
 }
 
-func (p Config) buildCore(outputs map[string]zapcore.WriteSyncer) (zapcore.Core, error) {
-	cores := make([]zapcore.Core, 0, len(p.Categories))
-	for _, cate := range p.Categories {
-		core, err := cate.build(p.Level, outputs)
-		if err != nil {
-			return nil, err
-		}
-		cores = append(cores, core)
-	}
-	return zapcore.NewTee(cores...), nil
-}
-
-func (p Config) buildOptions(errOutput zapcore.WriteSyncer) []zap.Option {
-	opts := []zap.Option{zap.ErrorOutput(errOutput)}
-
-	if p.Development {
-		opts = append(opts, zap.Development())
-	}
-	if !p.DisableCaller {
-		opts = append(opts, zap.AddCaller())
-	}
-
-	stackLevel := zap.ErrorLevel
-	if p.Development {
-		stackLevel = zap.WarnLevel
-	}
-	if !p.DisableStacktrace {
-		opts = append(opts, zap.AddStacktrace(stackLevel))
-	}
-
-	if len(p.InitialFields) > 0 {
-		fs := make([]zap.Field, 0, len(p.InitialFields))
-		keys := make([]string, 0, len(p.InitialFields))
-		for k := range p.InitialFields {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		for _, k := range keys {
-			fs = append(fs, zap.Any(k, p.InitialFields[k]))
-		}
-		opts = append(opts, zap.Fields(fs...))
-	}
-
-	return opts
-}
-
-func (p Config) build(opts ...zap.Option) (*zap.Logger, func(), error) {
-	outputs, errOutput, close, err := p.buildOutputs()
+func readYAML(file string, a interface{}) error {
+	data, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, nil, err
+		return err
 	}
-	core, err := p.buildCore(outputs)
-	if err != nil {
-		close()
-		return nil, nil, err
-	}
-	log := zap.New(core, p.buildOptions(errOutput)...)
-	if len(opts) > 0 {
-		log = log.WithOptions(opts...)
-	}
-	return log, close, nil
+	return yaml.Unmarshal(data, a)
 }
 
-func (p Config) Build(opts ...zap.Option) (*Logger, error) {
-	base, _, err := p.build(opts...)
+func writeYAML(file string, a interface{}) error {
+	data, err := yaml.Marshal(a)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return NewLogger(base), nil
+	return ioutil.WriteFile(file, data, 0666)
 }
-*/
