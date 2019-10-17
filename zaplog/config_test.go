@@ -66,12 +66,12 @@ var ComplexConfig = Config{
 			Name: "Access-Encoder",
 		},
 	},
-	Default: LoggerConfig{
-		Name:    "",
-		Encoder: "",
-		Streams: []string{"Trace-Stream", "Debug-Stream", "Info-Stream", "Warn-Stream", "Error-Stream", "Fatal-Stream"},
-	},
 	Loggers: []LoggerConfig{
+		{
+			Name:    "Default",
+			Encoder: "",
+			Streams: []string{"Trace-Stream", "Debug-Stream", "Info-Stream", "Warn-Stream", "Error-Stream", "Fatal-Stream"},
+		},
 		{
 			Name:    "access",
 			Encoder: "Access-Encoder",
@@ -95,10 +95,7 @@ func TestWriteConfig(t *testing.T) {
 			conf: Config{
 				Streams:  []StreamConfig{},
 				Encoders: []EncoderConfig{},
-				Default: LoggerConfig{
-					Streams: []string{},
-				},
-				Loggers: []LoggerConfig{},
+				Loggers:  []LoggerConfig{},
 			},
 		},
 		{file: "example.config.yaml", conf: ExampleConfig},

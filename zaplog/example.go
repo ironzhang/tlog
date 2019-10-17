@@ -40,10 +40,11 @@ var ExampleConfig = Config{
 		},
 	},
 	Encoders: []EncoderConfig{},
-	Default: LoggerConfig{
-		Name:    "",
-		Encoder: "",
-		Streams: []string{"Trace-Stream", "Debug-Stream", "Info-Stream", "Warn-Stream", "Error-Stream", "Fatal-Stream"},
+	Loggers: []LoggerConfig{
+		{
+			Name:    "Default",
+			Encoder: "",
+			Streams: []string{"Trace-Stream", "Debug-Stream", "Info-Stream", "Warn-Stream", "Error-Stream", "Fatal-Stream"},
+		},
 	},
-	Loggers: []LoggerConfig{},
 }

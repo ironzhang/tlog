@@ -26,11 +26,11 @@ type EncoderConfig struct {
 	CallerKey     string `json:"callerKey" yaml:"callerKey"`
 	StacktraceKey string `json:"stacktraceKey" yaml:"stacktraceKey"`
 	LineEnding    string `json:"lineEnding" yaml:"lineEnding"`
-	//	EncodeLevel    LevelEncoder    `json:"levelEncoder" yaml:"levelEncoder"`
-	//	EncodeTime     TimeEncoder     `json:"timeEncoder" yaml:"timeEncoder"`
-	//	EncodeDuration DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`
-	//	EncodeCaller   CallerEncoder   `json:"callerEncoder" yaml:"callerEncoder"`
-	//	EncodeName     NameEncoder     `json:"nameEncoder" yaml:"nameEncoder"`
+	//	EncodeLevel    zapcore.LevelEncoder    `json:"levelEncoder" yaml:"levelEncoder"`
+	//	EncodeTime     zapcore.TimeEncoder     `json:"timeEncoder" yaml:"timeEncoder"`
+	//	EncodeDuration zapcore.DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`
+	//	EncodeCaller   zapcore.CallerEncoder   `json:"callerEncoder" yaml:"callerEncoder"`
+	//	EncodeName     zapcore.NameEncoder     `json:"nameEncoder" yaml:"nameEncoder"`
 }
 
 type LoggerConfig struct {
@@ -43,7 +43,6 @@ type Config struct {
 	Level    Level           `json:"level" yaml:"level"`
 	Streams  []StreamConfig  `json:"streams" yaml:"streams"`
 	Encoders []EncoderConfig `json:"encoders" yaml:"encoders"`
-	Default  LoggerConfig    `json:"default" yaml:"default"`
 	Loggers  []LoggerConfig  `json:"loggers" yaml:"loggers"`
 }
 
