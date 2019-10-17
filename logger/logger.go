@@ -10,10 +10,6 @@ type Logger interface {
 	WithArgs(args ...interface{}) Logger
 	WithContext(ctx context.Context) Logger
 
-	Trace(args ...interface{})
-	Tracef(format string, args ...interface{})
-	Tracew(message string, kvs ...interface{})
-
 	Debug(args ...interface{})
 	Debugf(format string, args ...interface{})
 	Debugw(message string, kvs ...interface{})
@@ -37,4 +33,8 @@ type Logger interface {
 	Fatal(args ...interface{})
 	Fatalf(format string, args ...interface{})
 	Fatalw(message string, kvs ...interface{})
+
+	Print(calldepth int, level Level, args ...interface{})
+	Printf(calldepth int, level Level, format string, args ...interface{})
+	Printw(calldepth int, level Level, message string, args ...interface{})
 }
