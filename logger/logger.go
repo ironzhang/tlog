@@ -34,7 +34,7 @@ type Logger interface {
 	Fatalf(format string, args ...interface{})
 	Fatalw(message string, kvs ...interface{})
 
-	Print(calldepth int, level Level, args ...interface{})
-	Printf(calldepth int, level Level, format string, args ...interface{})
-	Printw(calldepth int, level Level, message string, args ...interface{})
+	Print(depth int, level Level, args ...interface{})
+	Printf(depth int, level Level, format string, args ...interface{})
+	Printw(depth int, level Level, message string, kvs ...interface{})
 }
