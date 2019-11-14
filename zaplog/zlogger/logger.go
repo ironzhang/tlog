@@ -1,8 +1,9 @@
-package zaplog
+package zlogger
 
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"time"
 
@@ -10,107 +11,169 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-type Level = logger.Level
-
-const (
-	DEBUG = logger.DEBUG
-	INFO  = logger.INFO
-	WARN  = logger.WARN
-	ERROR = logger.ERROR
-	PANIC = logger.PANIC
-	FATAL = logger.FATAL
-)
-
 type WithContextFunc func(ctx context.Context) (args []interface{})
 
 type Logger struct {
-	name      string
-	core      zapcore.Core
-	errout    zapcore.WriteSyncer
-	addstack  zapcore.LevelEnabler
-	addcaller bool
+	name        string
+	level       *atomicLevel
+	core        zapcore.Core
+	errout      zapcore.WriteSyncer
+	addstack    zapcore.LevelEnabler
+	addcaller   bool
+	withContext WithContextFunc
 
-	withctx WithContextFunc
-	ctxs    []zapcore.Field
-	args    []zapcore.Field
+	ctxs []zapcore.Field
+	args []zapcore.Field
+}
+
+func NewLogger(name string, level Level, core zapcore.Core) *Logger {
+	lv := newAtomicLevel(zapLevel(level))
+	return &Logger{
+		name:      name,
+		level:     lv,
+		core:      newEnabledCore(core, lv),
+		errout:    zapcore.Lock(os.Stdout),
+		addstack:  zapcore.ErrorLevel,
+		addcaller: true,
+	}
+}
+
+func (p *Logger) Name() string {
+	return p.name
 }
 
 func (p *Logger) GetLevel() Level {
-	return DEBUG
+	return logLevel(p.level.GetLevel())
 }
 
 func (p *Logger) SetLevel(level Level) {
+	p.level.SetLevel(zapLevel(level))
+}
+
+func (p *Logger) clone() *Logger {
+	c := &Logger{
+		name:      p.name,
+		level:     p.level,
+		core:      p.core,
+		errout:    p.errout,
+		addstack:  p.addstack,
+		addcaller: p.addcaller,
+	}
+	if n := len(p.ctxs); n > 0 {
+		c.ctxs = make([]zapcore.Field, n, n+10)
+		copy(c.ctxs, p.ctxs)
+	}
+	if n := len(p.args); n > 0 {
+		c.args = make([]zapcore.Field, n, n+10)
+		copy(c.args, p.args)
+	}
+	return c
 }
 
 func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
-	return p
+	if len(args) <= 0 {
+		return p
+	}
+	c := p.clone()
+	c.args = append(c.args, p.sweetenFields(args)...)
+	return c
 }
 
 func (p *Logger) WithContext(ctx context.Context) logger.Logger {
-	return p
+	if p.withContext == nil {
+		return p
+	}
+	args := p.withContext(ctx)
+	if len(args) <= 0 {
+		return p
+	}
+	c := p.clone()
+	c.ctxs = append(c.ctxs, p.sweetenFields(args)...)
+	return c
 }
 
 func (p *Logger) Debug(args ...interface{}) {
+	p.Print(1, DEBUG, args...)
 }
 
 func (p *Logger) Debugf(format string, args ...interface{}) {
+	p.Printf(1, DEBUG, format, args...)
 }
 
 func (p *Logger) Debugw(message string, kvs ...interface{}) {
+	p.Printw(1, DEBUG, message, kvs...)
 }
 
 func (p *Logger) Info(args ...interface{}) {
+	p.Print(1, INFO, args...)
 }
 
 func (p *Logger) Infof(format string, args ...interface{}) {
+	p.Printf(1, INFO, format, args...)
 }
 
 func (p *Logger) Infow(message string, kvs ...interface{}) {
+	p.Printw(1, INFO, message, kvs...)
 }
 
 func (p *Logger) Warn(args ...interface{}) {
+	p.Print(1, WARN, args...)
 }
 
 func (p *Logger) Warnf(format string, args ...interface{}) {
+	p.Printf(1, WARN, format, args...)
 }
 
 func (p *Logger) Warnw(message string, kvs ...interface{}) {
+	p.Printw(1, WARN, message, kvs...)
 }
 
 func (p *Logger) Error(args ...interface{}) {
+	p.Print(1, ERROR, args...)
 }
 
 func (p *Logger) Errorf(format string, args ...interface{}) {
+	p.Printf(1, ERROR, format, args...)
 }
 
 func (p *Logger) Errorw(message string, kvs ...interface{}) {
+	p.Printw(1, ERROR, message, kvs...)
 }
 
 func (p *Logger) Panic(args ...interface{}) {
+	p.Print(1, PANIC, args...)
 }
 
 func (p *Logger) Panicf(format string, args ...interface{}) {
+	p.Printf(1, PANIC, format, args...)
 }
 
 func (p *Logger) Panicw(message string, kvs ...interface{}) {
+	p.Printw(1, PANIC, message, kvs...)
 }
 
 func (p *Logger) Fatal(args ...interface{}) {
+	p.Print(1, FATAL, args...)
 }
 
 func (p *Logger) Fatalf(format string, args ...interface{}) {
+	p.Printf(1, FATAL, format, args...)
 }
 
 func (p *Logger) Fatalw(message string, kvs ...interface{}) {
+	p.Printw(1, FATAL, message, kvs...)
 }
 
 func (p *Logger) Print(depth int, level Level, args ...interface{}) {
+	p.log(depth, zapLevel(level), "", args, nil)
 }
 
 func (p *Logger) Printf(depth int, level Level, format string, args ...interface{}) {
+	p.log(depth, zapLevel(level), format, args, nil)
 }
 
 func (p *Logger) Printw(depth int, level Level, message string, kvs ...interface{}) {
+	p.log(depth, zapLevel(level), message, nil, kvs)
 }
 
 func (p *Logger) log(depth int, level zapcore.Level, template string, args []interface{}, kvs []interface{}) {
