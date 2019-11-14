@@ -1,10 +1,9 @@
 package zlogger
 
 import (
-	"sync/atomic"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/ironzhang/tlog/logger"
-	"go.uber.org/zap/zapcore"
 )
 
 type Level = logger.Level
@@ -60,24 +59,4 @@ func logLevel(lv zapcore.Level) Level {
 		return FATAL
 	}
 	return DEBUG
-}
-
-type atomicLevel struct {
-	lv int32
-}
-
-func newAtomicLevel(lv zapcore.Level) *atomicLevel {
-	return &atomicLevel{lv: int32(lv)}
-}
-
-func (l *atomicLevel) SetLevel(lv zapcore.Level) {
-	atomic.StoreInt32(&l.lv, int32(lv))
-}
-
-func (l *atomicLevel) GetLevel() zapcore.Level {
-	return zapcore.Level(atomic.LoadInt32(&l.lv))
-}
-
-func (l *atomicLevel) Enabled(lv zapcore.Level) bool {
-	return l.GetLevel() <= lv
 }
