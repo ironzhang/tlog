@@ -3,11 +3,7 @@ package zlogger
 import (
 	"context"
 	"fmt"
-	"os"
-	"runtime"
-	"time"
 
-	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
@@ -17,28 +13,41 @@ import (
 type WithContextFunc func(ctx context.Context) (args []interface{})
 
 type Logger struct {
-	name        string
-	level       zap.AtomicLevel
-	core        zapcore.Core
-	errout      zapcore.WriteSyncer
-	addstack    zapcore.LevelEnabler
-	addcaller   bool
-	withContext WithContextFunc
+	name    string
+	base    *zap.Logger
+	level   zap.AtomicLevel
+	withctx WithContextFunc
 
-	ctxs []zapcore.Field
-	args []zapcore.Field
+	ctxs []interface{}
+	args []interface{}
 }
 
-func NewLogger(name string, level Level, core zapcore.Core) *Logger {
+func NewLogger(name string, level Level, core zapcore.Core, opts ...zap.Option) *Logger {
 	lv := zap.NewAtomicLevelAt(zapLevel(level))
+	base := zap.New(newEnabledCore(core, lv)).WithOptions(opts...)
 	return &Logger{
-		name:      name,
-		level:     lv,
-		core:      newEnabledCore(core, lv),
-		errout:    zapcore.Lock(os.Stdout),
-		addstack:  zapcore.ErrorLevel,
-		addcaller: true,
+		name:  name,
+		base:  base,
+		level: lv,
 	}
+}
+
+func (p *Logger) clone(nctxs, nargs int) *Logger {
+	c := &Logger{
+		name:    p.name,
+		base:    p.base,
+		level:   p.level,
+		withctx: p.withctx,
+	}
+	if n := len(p.ctxs); n > 0 {
+		c.ctxs = make([]interface{}, n, n+nctxs)
+		copy(c.ctxs, p.ctxs)
+	}
+	if n := len(p.args); n > 0 {
+		c.args = make([]interface{}, n, n+nargs)
+		copy(c.args, p.args)
+	}
+	return c
 }
 
 func (p *Logger) Name() string {
@@ -53,23 +62,13 @@ func (p *Logger) SetLevel(level Level) {
 	p.level.SetLevel(zapLevel(level))
 }
 
-func (p *Logger) clone() *Logger {
-	c := &Logger{
-		name:      p.name,
-		level:     p.level,
-		core:      p.core,
-		errout:    p.errout,
-		addstack:  p.addstack,
-		addcaller: p.addcaller,
-	}
-	if n := len(p.ctxs); n > 0 {
-		c.ctxs = make([]zapcore.Field, n, n+10)
-		copy(c.ctxs, p.ctxs)
-	}
-	if n := len(p.args); n > 0 {
-		c.args = make([]zapcore.Field, n, n+10)
-		copy(c.args, p.args)
-	}
+func (p *Logger) SetWithContextFunc(f WithContextFunc) {
+	p.withctx = f
+}
+
+func (p *Logger) WithOptions(opts ...zap.Option) *Logger {
+	c := p.clone(0, 0)
+	c.base = c.base.WithOptions(opts...)
 	return c
 }
 
@@ -77,21 +76,21 @@ func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 	if len(args) <= 0 {
 		return p
 	}
-	c := p.clone()
-	c.args = append(c.args, p.sweetenFields(args)...)
+	c := p.clone(0, len(args))
+	c.args = append(c.args, args...)
 	return c
 }
 
 func (p *Logger) WithContext(ctx context.Context) logger.Logger {
-	if p.withContext == nil {
+	if p.withctx == nil {
 		return p
 	}
-	args := p.withContext(ctx)
+	args := p.withctx(ctx)
 	if len(args) <= 0 {
 		return p
 	}
-	c := p.clone()
-	c.ctxs = append(c.ctxs, p.sweetenFields(args)...)
+	c := p.clone(len(args), 0)
+	c.ctxs = append(c.ctxs, args...)
 	return c
 }
 
@@ -179,11 +178,14 @@ func (p *Logger) Printw(depth int, level Level, message string, kvs ...interface
 	p.log(depth, zapLevel(level), message, nil, kvs)
 }
 
-func (p *Logger) log(depth int, level zapcore.Level, template string, args []interface{}, kvs []interface{}) {
-	if level < zapcore.DPanicLevel && !p.core.Enabled(level) {
+func (p *Logger) log(depth int, lvl zapcore.Level, template string, args []interface{}, kvs []interface{}) {
+	// If logging at this level is completely disabled, skip the overhead of
+	// string formatting.
+	if lvl < zapcore.DPanicLevel && !p.base.Core().Enabled(lvl) {
 		return
 	}
 
+	// Format with Sprint, Sprintf, or neither.
 	msg := template
 	if msg == "" && len(args) > 0 {
 		msg = fmt.Sprint(args...)
@@ -191,124 +193,30 @@ func (p *Logger) log(depth int, level zapcore.Level, template string, args []int
 		msg = fmt.Sprintf(template, args...)
 	}
 
-	p.output(depth, level, msg, p.sweetenFields(kvs)...)
-}
-
-func (p *Logger) output(depth int, level zapcore.Level, msg string, fields ...zapcore.Field) {
-	core := p.core
-	if len(p.ctxs) > 0 {
-		core = core.With(p.ctxs)
-	}
-	if len(p.args) > 0 {
-		core = core.With(p.args)
-	}
-	if ce := p.check(core, depth, level, msg); ce != nil {
-		ce.Write(fields...)
-	}
-}
-
-func (p *Logger) check(core zapcore.Core, depth int, level zapcore.Level, msg string) *zapcore.CheckedEntry {
-	const callerskip = 3
-
-	ent := zapcore.Entry{
-		Level:      level,
-		Time:       time.Now(),
-		LoggerName: p.name,
-		Message:    msg,
-	}
-	ce := core.Check(ent, nil)
-	if ce != nil {
-		ce.ErrorOutput = p.errout
-		if p.addcaller {
-			ce.Entry.Caller = zapcore.NewEntryCaller(runtime.Caller(callerskip + depth))
-			if !ce.Entry.Caller.Defined {
-				fmt.Fprintf(p.errout, "%v Logger.check error: failed to get caller\n", time.Now().UTC())
-				p.errout.Sync()
-			}
-		}
-		if p.addstack.Enabled(ce.Entry.Level) {
-			ce.Entry.Stack = stackTrace(callerskip + depth)
-		}
-	}
-
-	switch ent.Level {
+	// Output log message.
+	const skip = 2
+	base := p.base.WithOptions(zap.AddCallerSkip(skip + depth))
+	sugar := base.Sugar().With(p.ctxs...).With(p.args...)
+	switch lvl {
+	case zapcore.DebugLevel:
+		sugar.Debugw(msg, kvs...)
+	case zapcore.InfoLevel:
+		sugar.Infow(msg, kvs...)
+	case zapcore.WarnLevel:
+		sugar.Warnw(msg, kvs...)
+	case zapcore.ErrorLevel:
+		sugar.Errorw(msg, kvs...)
+	case zapcore.DPanicLevel:
+		sugar.DPanicw(msg, kvs...)
 	case zapcore.PanicLevel:
-		ce = ce.Should(ent, zapcore.WriteThenPanic)
+		sugar.Panicw(msg, kvs...)
 	case zapcore.FatalLevel:
-		ce = ce.Should(ent, zapcore.WriteThenFatal)
-	}
-	return ce
-}
-
-const (
-	_oddNumberErrMsg    = "Ignored key without a value."
-	_nonStringKeyErrMsg = "Ignored key-value pairs with non-string keys."
-)
-
-func (p *Logger) sweetenFields(args []interface{}) []zapcore.Field {
-	if len(args) == 0 {
-		return nil
-	}
-
-	// Allocate enough space for the worst case; if users pass only structured
-	// fields, we shouldn't penalize them with extra allocations.
-	fields := make([]zapcore.Field, 0, len(args))
-	var invalid invalidPairs
-
-	for i := 0; i < len(args); {
-		// This is a strongly-typed field. Consume it and move on.
-		if f, ok := args[i].(zapcore.Field); ok {
-			fields = append(fields, f)
-			i++
-			continue
-		}
-
-		// Make sure this element isn't a dangling key.
-		if i == len(args)-1 {
-			p.output(1, zapcore.PanicLevel, _oddNumberErrMsg, zap.Any("ignored", args[i]))
-			break
-		}
-
-		// Consume this value and the next, treating them as a key-value pair. If the
-		// key isn't a string, add this pair to the slice of invalid pairs.
-		key, val := args[i], args[i+1]
-		if keyStr, ok := key.(string); !ok {
-			// Subsequent errors are likely, so allocate once up front.
-			if cap(invalid) == 0 {
-				invalid = make(invalidPairs, 0, len(args)/2)
-			}
-			invalid = append(invalid, invalidPair{i, key, val})
+		sugar.Fatalw(msg, kvs...)
+	default:
+		if lvl > zapcore.FatalLevel {
+			sugar.Fatalw(msg, kvs...)
 		} else {
-			fields = append(fields, zap.Any(keyStr, val))
+			sugar.Debugw(msg, kvs...)
 		}
-		i += 2
 	}
-
-	// If we encountered any invalid key-value pairs, log an error.
-	if len(invalid) > 0 {
-		p.output(1, zapcore.PanicLevel, _nonStringKeyErrMsg, zap.Array("invalid", invalid))
-	}
-	return fields
-}
-
-type invalidPair struct {
-	position   int
-	key, value interface{}
-}
-
-func (p invalidPair) MarshalLogObject(enc zapcore.ObjectEncoder) error {
-	enc.AddInt64("position", int64(p.position))
-	zap.Any("key", p.key).AddTo(enc)
-	zap.Any("value", p.value).AddTo(enc)
-	return nil
-}
-
-type invalidPairs []invalidPair
-
-func (ps invalidPairs) MarshalLogArray(enc zapcore.ArrayEncoder) error {
-	var err error
-	for i := range ps {
-		err = multierr.Append(err, enc.AppendObject(ps[i]))
-	}
-	return err
 }
