@@ -18,10 +18,11 @@ const (
 )
 
 type Logger = logger.Logger
+type Factory = logger.Factory
 
-type nopLogger struct{}
+type nopLogger struct {
+}
 
-func (p nopLogger) Named(name string) Logger                                          { return p }
 func (p nopLogger) WithArgs(args ...interface{}) Logger                               { return p }
 func (p nopLogger) WithContext(ctx context.Context) Logger                            { return p }
 func (p nopLogger) Debug(args ...interface{})                                         {}
@@ -46,20 +47,29 @@ func (p nopLogger) Print(depth int, level Level, args ...interface{})           
 func (p nopLogger) Printf(depth int, level Level, format string, args ...interface{}) {}
 func (p nopLogger) Printw(depth int, level Level, message string, kvs ...interface{}) {}
 
-var logging Logger = nopLogger{}
+type nopLoggerFactory struct{}
 
-func SetLogger(l Logger) Logger {
-	prev := logging
-	if l == nil {
-		logging = nopLogger{}
-	} else {
-		logging = l
+func (p nopLoggerFactory) GetLogger(name string) Logger {
+	return nopLogger{}
+}
+
+func init() {
+	SetFactory(nil)
+}
+
+var logging Logger
+var factory Factory
+
+func SetFactory(f Factory) {
+	if f == nil {
+		f = nopLoggerFactory{}
 	}
-	return prev
+	factory = f
+	logging = f.GetLogger("")
 }
 
 func Named(name string) Logger {
-	return logging.Named(name)
+	return factory.GetLogger(name)
 }
 
 func WithArgs(args ...interface{}) Logger {

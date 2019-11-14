@@ -6,7 +6,6 @@ import (
 
 // Logger 日志接口
 type Logger interface {
-	Named(name string) Logger
 	WithArgs(args ...interface{}) Logger
 	WithContext(ctx context.Context) Logger
 
