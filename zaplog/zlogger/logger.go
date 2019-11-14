@@ -22,7 +22,7 @@ type Logger struct {
 	args []interface{}
 }
 
-func NewLogger(name string, level Level, core zapcore.Core, opts ...zap.Option) *Logger {
+func New(name string, level Level, core zapcore.Core, opts ...zap.Option) *Logger {
 	lv := zap.NewAtomicLevelAt(zapLevel(level))
 	base := zap.New(newEnabledCore(core, lv)).WithOptions(opts...)
 	return &Logger{
