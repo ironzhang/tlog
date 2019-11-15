@@ -8,36 +8,36 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/ironzhang/tlog/logger"
+	"github.com/ironzhang/tlog/zaplog/zbase"
 )
 
-type WithContextFunc func(ctx context.Context) (args []interface{})
+type ContextHook interface {
+	WithContext(ctx context.Context) (args []interface{})
+}
 
 type Logger struct {
-	name    string
-	base    *zap.Logger
-	level   zap.AtomicLevel
-	withctx WithContextFunc
+	name string
+	base *zap.Logger
+	hook ContextHook
 
 	ctxs []interface{}
 	args []interface{}
 }
 
-func New(name string, level Level, core zapcore.Core, opts ...zap.Option) *Logger {
-	lv := zap.NewAtomicLevelAt(zapLevel(level))
-	base := zap.New(newEnabledCore(core, lv)).WithOptions(opts...)
+func New(name string, core zapcore.Core, hook ContextHook, opts ...zap.Option) *Logger {
+	base := zap.New(core, opts...)
 	return &Logger{
-		name:  name,
-		base:  base,
-		level: lv,
+		name: name,
+		base: base,
+		hook: hook,
 	}
 }
 
 func (p *Logger) clone(nctxs, nargs int) *Logger {
 	c := &Logger{
-		name:    p.name,
-		base:    p.base,
-		level:   p.level,
-		withctx: p.withctx,
+		name: p.name,
+		base: p.base,
+		hook: p.hook,
 	}
 	if n := len(p.ctxs); n > 0 {
 		c.ctxs = make([]interface{}, n, n+nctxs)
@@ -54,24 +54,6 @@ func (p *Logger) Name() string {
 	return p.name
 }
 
-func (p *Logger) GetLevel() Level {
-	return logLevel(p.level.Level())
-}
-
-func (p *Logger) SetLevel(level Level) {
-	p.level.SetLevel(zapLevel(level))
-}
-
-func (p *Logger) SetWithContextFunc(f WithContextFunc) {
-	p.withctx = f
-}
-
-func (p *Logger) WithOptions(opts ...zap.Option) *Logger {
-	c := p.clone(0, 0)
-	c.base = c.base.WithOptions(opts...)
-	return c
-}
-
 func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 	if len(args) <= 0 {
 		return p
@@ -82,10 +64,10 @@ func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 }
 
 func (p *Logger) WithContext(ctx context.Context) logger.Logger {
-	if p.withctx == nil {
+	if p.hook == nil {
 		return p
 	}
-	args := p.withctx(ctx)
+	args := p.hook.WithContext(ctx)
 	if len(args) <= 0 {
 		return p
 	}
@@ -95,87 +77,87 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 }
 
 func (p *Logger) Debug(args ...interface{}) {
-	p.Print(1, DEBUG, args...)
+	p.Print(1, logger.DEBUG, args...)
 }
 
 func (p *Logger) Debugf(format string, args ...interface{}) {
-	p.Printf(1, DEBUG, format, args...)
+	p.Printf(1, logger.DEBUG, format, args...)
 }
 
 func (p *Logger) Debugw(message string, kvs ...interface{}) {
-	p.Printw(1, DEBUG, message, kvs...)
+	p.Printw(1, logger.DEBUG, message, kvs...)
 }
 
 func (p *Logger) Info(args ...interface{}) {
-	p.Print(1, INFO, args...)
+	p.Print(1, logger.INFO, args...)
 }
 
 func (p *Logger) Infof(format string, args ...interface{}) {
-	p.Printf(1, INFO, format, args...)
+	p.Printf(1, logger.INFO, format, args...)
 }
 
 func (p *Logger) Infow(message string, kvs ...interface{}) {
-	p.Printw(1, INFO, message, kvs...)
+	p.Printw(1, logger.INFO, message, kvs...)
 }
 
 func (p *Logger) Warn(args ...interface{}) {
-	p.Print(1, WARN, args...)
+	p.Print(1, logger.WARN, args...)
 }
 
 func (p *Logger) Warnf(format string, args ...interface{}) {
-	p.Printf(1, WARN, format, args...)
+	p.Printf(1, logger.WARN, format, args...)
 }
 
 func (p *Logger) Warnw(message string, kvs ...interface{}) {
-	p.Printw(1, WARN, message, kvs...)
+	p.Printw(1, logger.WARN, message, kvs...)
 }
 
 func (p *Logger) Error(args ...interface{}) {
-	p.Print(1, ERROR, args...)
+	p.Print(1, logger.ERROR, args...)
 }
 
 func (p *Logger) Errorf(format string, args ...interface{}) {
-	p.Printf(1, ERROR, format, args...)
+	p.Printf(1, logger.ERROR, format, args...)
 }
 
 func (p *Logger) Errorw(message string, kvs ...interface{}) {
-	p.Printw(1, ERROR, message, kvs...)
+	p.Printw(1, logger.ERROR, message, kvs...)
 }
 
 func (p *Logger) Panic(args ...interface{}) {
-	p.Print(1, PANIC, args...)
+	p.Print(1, logger.PANIC, args...)
 }
 
 func (p *Logger) Panicf(format string, args ...interface{}) {
-	p.Printf(1, PANIC, format, args...)
+	p.Printf(1, logger.PANIC, format, args...)
 }
 
 func (p *Logger) Panicw(message string, kvs ...interface{}) {
-	p.Printw(1, PANIC, message, kvs...)
+	p.Printw(1, logger.PANIC, message, kvs...)
 }
 
 func (p *Logger) Fatal(args ...interface{}) {
-	p.Print(1, FATAL, args...)
+	p.Print(1, logger.FATAL, args...)
 }
 
 func (p *Logger) Fatalf(format string, args ...interface{}) {
-	p.Printf(1, FATAL, format, args...)
+	p.Printf(1, logger.FATAL, format, args...)
 }
 
 func (p *Logger) Fatalw(message string, kvs ...interface{}) {
-	p.Printw(1, FATAL, message, kvs...)
+	p.Printw(1, logger.FATAL, message, kvs...)
 }
 
-func (p *Logger) Print(depth int, level Level, args ...interface{}) {
-	p.log(depth, zapLevel(level), "", args, nil)
+func (p *Logger) Print(depth int, level logger.Level, args ...interface{}) {
+	p.log(depth, zbase.ZapLevel(level), "", args, nil)
 }
 
-func (p *Logger) Printf(depth int, level Level, format string, args ...interface{}) {
-	p.log(depth, zapLevel(level), format, args, nil)
+func (p *Logger) Printf(depth int, level logger.Level, format string, args ...interface{}) {
+	p.log(depth, zbase.ZapLevel(level), format, args, nil)
 }
 
-func (p *Logger) Printw(depth int, level Level, message string, kvs ...interface{}) {
-	p.log(depth, zapLevel(level), message, nil, kvs)
+func (p *Logger) Printw(depth int, level logger.Level, message string, kvs ...interface{}) {
+	p.log(depth, zbase.ZapLevel(level), message, nil, kvs)
 }
 
 func (p *Logger) log(depth int, lvl zapcore.Level, template string, args []interface{}, kvs []interface{}) {

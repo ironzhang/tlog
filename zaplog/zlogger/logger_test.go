@@ -5,20 +5,30 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ironzhang/tlog/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+type TestContextHook struct{}
+
+func (p TestContextHook) WithContext(ctx context.Context) []interface{} {
+	return []interface{}{"trace_id", "123456"}
+}
 
 func NewTestCore() zapcore.Core {
 	enc := zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig())
 	return zapcore.NewCore(enc, os.Stdout, zapcore.DebugLevel)
 }
 
-func TestLoggerPrint(t *testing.T) {
+func NewTestLogger() *Logger {
 	core := NewTestCore()
-	log := New("", DEBUG, core, zap.AddCaller())
+	return New("", core, TestContextHook{}, zap.AddCaller())
+}
 
-	min, max := DEBUG, ERROR
+func TestLoggerPrint(t *testing.T) {
+	log := NewTestLogger()
+	min, max := logger.DEBUG, logger.ERROR
 	for lvl := min; lvl <= max; lvl++ {
 		log.Print(0, lvl, "Print level", lvl)
 		log.Printf(0, lvl, "Printf level=%d", lvl)
@@ -27,12 +37,8 @@ func TestLoggerPrint(t *testing.T) {
 }
 
 func TestLogger(t *testing.T) {
-	core := NewTestCore()
-	logger := New("", DEBUG, core, zap.AddCaller())
-	logger.SetWithContextFunc(func(ctx context.Context) []interface{} {
-		return []interface{}{"trace_id", "123456"}
-	})
-	l := logger.WithArgs("function", "TestLogger").WithContext(context.Background())
+	log := NewTestLogger()
+	l := log.WithArgs("function", "TestLogger").WithContext(context.Background())
 
 	type LogFunc func(args ...interface{})
 	logFuncs := []LogFunc{

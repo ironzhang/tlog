@@ -1,4 +1,4 @@
-package zfactory
+package zconfig
 
 import (
 	"github.com/ironzhang/tlog/logger"
@@ -23,7 +23,7 @@ type Encoder struct {
 	EncodeName     zapcore.NameEncoder     `json:"nameEncoder" yaml:"nameEncoder"`
 }
 
-type Device struct {
+type Core struct {
 	Name     string   `json:"name" yaml:"name"`
 	Encoder  Encoder  `json:"encoder" yaml:"encoder"`
 	MinLevel Level    `json:"minLevel" yaml:"minLevel"`
@@ -33,11 +33,11 @@ type Device struct {
 
 type Logger struct {
 	Name    string   `json:"name" yaml:"name"`
-	Level   Level    `json:"level" yaml:"level"`
 	Devices []string `json:"devices" yaml:"devices"`
 }
 
 type Config struct {
-	Devices []Device `json:"devices" yaml:"devices"`
+	Level   Level    `json:"level" yaml:"level"`
+	Cores   []Core   `json:"devices" yaml:"devices"`
 	Loggers []Logger `json:"loggers" yaml:"loggers"`
 }

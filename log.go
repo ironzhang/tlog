@@ -49,6 +49,10 @@ func (p nopLogger) Printw(depth int, level Level, message string, kvs ...interfa
 
 type nopLoggerFactory struct{}
 
+func (p nopLoggerFactory) GetDefaultLogger() Logger {
+	return nopLogger{}
+}
+
 func (p nopLoggerFactory) GetLogger(name string) Logger {
 	return nopLogger{}
 }
@@ -65,7 +69,7 @@ func SetFactory(f Factory) {
 		f = nopLoggerFactory{}
 	}
 	factory = f
-	logging = f.GetLogger("")
+	logging = f.GetDefaultLogger()
 }
 
 func Named(name string) Logger {

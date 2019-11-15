@@ -1,4 +1,4 @@
-package zlogger
+package zbase
 
 import (
 	"go.uber.org/zap/zapcore"
@@ -6,57 +6,46 @@ import (
 	"github.com/ironzhang/tlog/logger"
 )
 
-type Level = logger.Level
-
-const (
-	DEBUG = logger.DEBUG
-	INFO  = logger.INFO
-	WARN  = logger.WARN
-	ERROR = logger.ERROR
-	PANIC = logger.PANIC
-	FATAL = logger.FATAL
-)
-
-func zapLevel(lv Level) zapcore.Level {
+func ZapLevel(lv logger.Level) zapcore.Level {
 	switch lv {
-	case DEBUG:
+	case logger.DEBUG:
 		return zapcore.DebugLevel
-	case INFO:
+	case logger.INFO:
 		return zapcore.InfoLevel
-	case WARN:
+	case logger.WARN:
 		return zapcore.WarnLevel
-	case ERROR:
+	case logger.ERROR:
 		return zapcore.ErrorLevel
-	case PANIC:
+	case logger.PANIC:
 		return zapcore.PanicLevel
-	case FATAL:
+	case logger.FATAL:
 		return zapcore.FatalLevel
 	}
-	if lv > FATAL {
+	if lv > logger.FATAL {
 		return zapcore.FatalLevel
 	}
 	return zapcore.DebugLevel
 }
 
-func logLevel(lv zapcore.Level) Level {
+func LoggerLevel(lv zapcore.Level) logger.Level {
 	switch lv {
 	case zapcore.DebugLevel:
-		return DEBUG
+		return logger.DEBUG
 	case zapcore.InfoLevel:
-		return INFO
+		return logger.INFO
 	case zapcore.WarnLevel:
-		return WARN
+		return logger.WARN
 	case zapcore.ErrorLevel:
-		return ERROR
+		return logger.ERROR
 	case zapcore.DPanicLevel:
-		return PANIC
+		return logger.PANIC
 	case zapcore.PanicLevel:
-		return PANIC
+		return logger.PANIC
 	case zapcore.FatalLevel:
-		return FATAL
+		return logger.FATAL
 	}
 	if lv > zapcore.FatalLevel {
-		return FATAL
+		return logger.FATAL
 	}
-	return DEBUG
+	return logger.DEBUG
 }
