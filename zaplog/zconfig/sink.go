@@ -1,26 +1,29 @@
-package zaplog
+package zconfig
 
 import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
 
-func newSink(name, url string) (*sink, error) {
-	ws, cf, err := zap.Open(url)
+type SinkConfig struct {
+	URL    string
+	Params map[string]interface{}
+}
+
+func NewSink(cfg SinkConfig) (zap.Sink, error) {
+	ws, cf, err := zap.Open(cfg.URL)
 	if err != nil {
 		return nil, err
 	}
 	return &sink{
-		name:        name,
-		closef:      cf,
 		WriteSyncer: ws,
+		closef:      cf,
 	}, nil
 }
 
 type sink struct {
-	name   string
-	closef func()
 	zapcore.WriteSyncer
+	closef func()
 }
 
 func (s *sink) Close() error {

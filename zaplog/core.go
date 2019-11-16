@@ -1,9 +1,6 @@
 package zaplog
 
-import (
-	"go.uber.org/zap/zapcore"
-)
-
+/*
 type enabledCore struct {
 	zapcore.Core
 	enabler zapcore.LevelEnabler
@@ -19,3 +16,17 @@ func newEnabledCore(base zapcore.Core, enabler zapcore.LevelEnabler) zapcore.Cor
 		enabler: enabler,
 	}
 }
+
+type core struct {
+}
+
+func newCore(name string, encoding string, encoder zapcore.EncoderConfig,
+	minLevel, maxLevel logger.Level, ws zapcore.WriteSyncer) (*core, error) {
+	enc, err := newEncoder(encoding, encoder)
+	if err != nil {
+		return nil, err
+	}
+	zapcore.NewCore(enc, ws)
+	return nil, nil
+}
+*/

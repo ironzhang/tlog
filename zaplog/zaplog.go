@@ -1,10 +1,6 @@
 package zaplog
 
 import (
-	"fmt"
-	"net/url"
-	"strings"
-
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -24,30 +20,6 @@ type ZapLogger struct {
 
 func (p *ZapLogger) init(cfg zconfig.Config) error {
 	p.level = zap.NewAtomicLevelAt(zbase.ZapLevel(cfg.Level))
-	return nil
-}
-
-func (p *ZapLogger) buildCore(core zconfig.Core) error {
-	return nil
-}
-
-func (p *ZapLogger) buildSink(rawurl string) error {
-	key, err := parseKeyFromURL(rawurl)
-	if err != nil {
-		return err
-	}
-	if _, ok := p.sinks[key]; ok {
-		return fmt.Errorf("sink %q is opened", key)
-	}
-	writer, closef, err := zap.Open(rawurl)
-	if err != nil {
-		return err
-	}
-	sink := wrapClosedSink(writer, func() error {
-		closef()
-		return nil
-	})
-	p.sinks[key] = sink
 	return nil
 }
 
@@ -84,20 +56,4 @@ func (p *ZapLogger) GetLogger(name string) logger.Logger {
 		return logger
 	}
 	return p.Logger
-}
-
-func parseKeyFromURL(rawurl string) (string, error) {
-	u, err := url.Parse(rawurl)
-	if err != nil {
-		return "", fmt.Errorf("parse url: %w", err)
-	}
-	if u.Scheme == "" {
-		u.Scheme = "file"
-	}
-	s := u.String()
-	i := strings.IndexByte(s, '?')
-	if i > 0 {
-		s = s[:i]
-	}
-	return s, nil
 }
