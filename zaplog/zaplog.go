@@ -147,7 +147,7 @@ func (p *Logger) Sync() error {
 }
 
 func (p *Logger) GetLevel() iface.Level {
-	return zbase.LoggerLevel(p.level.Level())
+	return zbase.LogLevel(p.level.Level())
 }
 
 func (p *Logger) SetLevel(level iface.Level) {

@@ -27,7 +27,7 @@ func ZapLevel(lv iface.Level) zapcore.Level {
 	return zapcore.DebugLevel
 }
 
-func LoggerLevel(lv zapcore.Level) iface.Level {
+func LogLevel(lv zapcore.Level) iface.Level {
 	switch lv {
 	case zapcore.DebugLevel:
 		return iface.DEBUG
