@@ -13,7 +13,7 @@ import (
 	"github.com/ironzhang/tlog/zaplog/zlogger"
 )
 
-type ZapLogger struct {
+type Logger struct {
 	iface.Logger
 	level   zap.AtomicLevel
 	sinks   map[string]zap.Sink
@@ -21,15 +21,15 @@ type ZapLogger struct {
 	loggers map[string]iface.Logger
 }
 
-func NewZapLogger(cfg Config) (*ZapLogger, error) {
-	var logger ZapLogger
+func New(cfg Config) (*Logger, error) {
+	var logger Logger
 	if err := logger.init(cfg); err != nil {
 		return nil, err
 	}
 	return &logger, nil
 }
 
-func (p *ZapLogger) init(cfg Config) (err error) {
+func (p *Logger) init(cfg Config) (err error) {
 	p.level = zap.NewAtomicLevelAt(zbase.ZapLevel(cfg.Level))
 	for _, sink := range cfg.Sinks {
 		if err = p.openSink(sink); err != nil {
@@ -54,7 +54,7 @@ func (p *ZapLogger) init(cfg Config) (err error) {
 	return nil
 }
 
-func (p *ZapLogger) openSink(cfg SinkConfig) error {
+func (p *Logger) openSink(cfg SinkConfig) error {
 	if _, ok := p.sinks[cfg.Name]; ok {
 		return fmt.Errorf("sink %q is already opened", cfg.Name)
 	}
@@ -66,7 +66,7 @@ func (p *ZapLogger) openSink(cfg SinkConfig) error {
 	return nil
 }
 
-func (p *ZapLogger) openCore(cfg CoreConfig) error {
+func (p *Logger) openCore(cfg CoreConfig) error {
 	if _, ok := p.cores[cfg.Name]; ok {
 		return fmt.Errorf("core %q is already opened", cfg.Name)
 	}
@@ -92,7 +92,7 @@ func (p *ZapLogger) openCore(cfg CoreConfig) error {
 	return nil
 }
 
-func (p *ZapLogger) openLogger(cfg LoggerConfig) error {
+func (p *Logger) openLogger(cfg LoggerConfig) error {
 	if _, ok := p.loggers[cfg.Name]; ok {
 		return fmt.Errorf("logger %q is already opened", cfg.Name)
 	}
@@ -106,7 +106,7 @@ func (p *ZapLogger) openLogger(cfg LoggerConfig) error {
 	return nil
 }
 
-func (p *ZapLogger) combineSink(names []string) (zapcore.WriteSyncer, error) {
+func (p *Logger) combineSink(names []string) (zapcore.WriteSyncer, error) {
 	sinks := make([]zapcore.WriteSyncer, 0, len(names))
 	for _, name := range names {
 		sink, ok := p.sinks[name]
@@ -118,7 +118,7 @@ func (p *ZapLogger) combineSink(names []string) (zapcore.WriteSyncer, error) {
 	return zap.CombineWriteSyncers(sinks...), nil
 }
 
-func (p *ZapLogger) combineCore(names []string) (zapcore.Core, error) {
+func (p *Logger) combineCore(names []string) (zapcore.Core, error) {
 	cores := make([]zapcore.Core, 0, len(names))
 	for _, name := range names {
 		core, ok := p.cores[name]
@@ -130,7 +130,7 @@ func (p *ZapLogger) combineCore(names []string) (zapcore.Core, error) {
 	return zapcore.NewTee(cores...), nil
 }
 
-func (p *ZapLogger) Close() error {
+func (p *Logger) Close() error {
 	var err error
 	for _, sink := range p.sinks {
 		err = multierr.Append(err, sink.Close())
@@ -138,7 +138,7 @@ func (p *ZapLogger) Close() error {
 	return err
 }
 
-func (p *ZapLogger) Sync() error {
+func (p *Logger) Sync() error {
 	var err error
 	for _, core := range p.cores {
 		err = multierr.Append(err, core.Sync())
@@ -146,19 +146,19 @@ func (p *ZapLogger) Sync() error {
 	return err
 }
 
-func (p *ZapLogger) GetLevel() iface.Level {
+func (p *Logger) GetLevel() iface.Level {
 	return zbase.LoggerLevel(p.level.Level())
 }
 
-func (p *ZapLogger) SetLevel(level iface.Level) {
+func (p *Logger) SetLevel(level iface.Level) {
 	p.level.SetLevel(zbase.ZapLevel(level))
 }
 
-func (p *ZapLogger) GetDefaultLogger() iface.Logger {
+func (p *Logger) GetDefaultLogger() iface.Logger {
 	return p.Logger
 }
 
-func (p *ZapLogger) GetLogger(name string) iface.Logger {
+func (p *Logger) GetLogger(name string) iface.Logger {
 	if logger, ok := p.loggers[name]; ok {
 		return logger
 	}
