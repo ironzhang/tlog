@@ -16,7 +16,9 @@ func newEnabledCore(base zapcore.Core, enabler zapcore.LevelEnabler) zapcore.Cor
 		enabler: enabler,
 	}
 }
+*/
 
+/*
 type core struct {
 }
 

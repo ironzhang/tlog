@@ -16,16 +16,17 @@ type CoreConfig struct {
 	Encoder  zapcore.EncoderConfig `json:"encoder" yaml:"encoder"`
 	MinLevel logger.Level          `json:"minLevel" yaml:"minLevel"`
 	MaxLevel logger.Level          `json:"maxLevel" yaml:"maxLevel"`
-	SinkRefs []string              `json:"urls" yaml:"urls"`
+	Sinks    []string              `json:"urls" yaml:"urls"`
 }
 
 type LoggerConfig struct {
-	Name     string   `json:"name" yaml:"name"`
-	CoreRefs []string `json:"devices" yaml:"devices"`
+	Name  string   `json:"name" yaml:"name"`
+	Cores []string `json:"devices" yaml:"devices"`
 }
 
 type Config struct {
-	Level   logger.Level   `json:"level" yaml:"level"`
+	Level   logger.Level `json:"level" yaml:"level"`
+	Sinks   []SinkConfig
 	Cores   []CoreConfig   `json:"devices" yaml:"devices"`
 	Loggers []LoggerConfig `json:"loggers" yaml:"loggers"`
 }
