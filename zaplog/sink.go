@@ -1,6 +1,8 @@
 package zaplog
 
 import (
+	"fmt"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -8,7 +10,7 @@ import (
 func newSink(name, url string) (*sink, error) {
 	ws, cf, err := zap.Open(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("zap open sink %q: %w", name, err)
 	}
 	return &sink{
 		name:        name,
