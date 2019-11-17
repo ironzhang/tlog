@@ -5,9 +5,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ironzhang/tlog/logger"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/ironzhang/tlog/iface"
 )
 
 type TestContextHook struct{}
@@ -27,24 +28,23 @@ func NewTestLogger() *Logger {
 }
 
 func TestLoggerPrint(t *testing.T) {
-	log := NewTestLogger()
-	min, max := logger.DEBUG, logger.ERROR
+	logger := NewTestLogger()
+	min, max := iface.DEBUG, iface.ERROR
 	for lvl := min; lvl <= max; lvl++ {
-		log.Print(0, lvl, "Print level", lvl)
-		log.Printf(0, lvl, "Printf level=%d", lvl)
-		log.Printw(0, lvl, "Printw", "level", lvl)
+		logger.Print(0, lvl, "Print level", lvl)
+		logger.Printf(0, lvl, "Printf level=%d", lvl)
+		logger.Printw(0, lvl, "Printw", "level", lvl)
 	}
 }
 
 func TestLogger(t *testing.T) {
-	log := NewTestLogger()
-	l := log.WithArgs("function", "TestLogger").WithContext(context.Background())
+	logger := NewTestLogger().WithArgs("function", "TestLogger").WithContext(context.Background())
 
 	type LogFunc func(args ...interface{})
 	logFuncs := []LogFunc{
-		l.Debug,
-		l.Info,
-		l.Warn,
+		logger.Debug,
+		logger.Info,
+		logger.Warn,
 	}
 	for _, log := range logFuncs {
 		log("hello", "world")
@@ -52,8 +52,8 @@ func TestLogger(t *testing.T) {
 
 	type LogfFunc func(format string, args ...interface{})
 	logfFuncs := []LogfFunc{
-		l.Debugf,
-		l.Infof,
+		logger.Debugf,
+		logger.Infof,
 	}
 	for _, log := range logfFuncs {
 		log("hello, %s", "world")
@@ -61,8 +61,8 @@ func TestLogger(t *testing.T) {
 
 	type LogwFunc func(message string, kvs ...interface{})
 	logwFuncs := []LogwFunc{
-		l.Debugw,
-		l.Infow,
+		logger.Debugw,
+		logger.Infow,
 	}
 	for _, log := range logwFuncs {
 		log("hello, world", "hello", "world")

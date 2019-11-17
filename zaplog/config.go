@@ -1,8 +1,9 @@
 package zaplog
 
 import (
-	"github.com/ironzhang/tlog/logger"
 	"go.uber.org/zap/zapcore"
+
+	"github.com/ironzhang/tlog/iface"
 )
 
 type SinkConfig struct {
@@ -14,8 +15,8 @@ type CoreConfig struct {
 	Name     string                `json:"name" yaml:"name"`
 	Encoding string                `json:"encoding" yaml:"encoding"`
 	Encoder  zapcore.EncoderConfig `json:"encoder" yaml:"encoder"`
-	MinLevel logger.Level          `json:"minLevel" yaml:"minLevel"`
-	MaxLevel logger.Level          `json:"maxLevel" yaml:"maxLevel"`
+	MinLevel iface.Level           `json:"minLevel" yaml:"minLevel"`
+	MaxLevel iface.Level           `json:"maxLevel" yaml:"maxLevel"`
 	Sinks    []string              `json:"urls" yaml:"urls"`
 }
 
@@ -25,7 +26,7 @@ type LoggerConfig struct {
 }
 
 type Config struct {
-	Level   logger.Level `json:"level" yaml:"level"`
+	Level   iface.Level `json:"level" yaml:"level"`
 	Sinks   []SinkConfig
 	Cores   []CoreConfig   `json:"devices" yaml:"devices"`
 	Loggers []LoggerConfig `json:"loggers" yaml:"loggers"`

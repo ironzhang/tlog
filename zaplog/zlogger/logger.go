@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ironzhang/tlog/logger"
+	"github.com/ironzhang/tlog/iface"
 	"github.com/ironzhang/tlog/zaplog/zbase"
 )
 
@@ -54,7 +54,7 @@ func (p *Logger) Name() string {
 	return p.name
 }
 
-func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
+func (p *Logger) WithArgs(args ...interface{}) iface.Logger {
 	if len(args) <= 0 {
 		return p
 	}
@@ -63,7 +63,7 @@ func (p *Logger) WithArgs(args ...interface{}) logger.Logger {
 	return c
 }
 
-func (p *Logger) WithContext(ctx context.Context) logger.Logger {
+func (p *Logger) WithContext(ctx context.Context) iface.Logger {
 	if p.hook == nil {
 		return p
 	}
@@ -77,86 +77,86 @@ func (p *Logger) WithContext(ctx context.Context) logger.Logger {
 }
 
 func (p *Logger) Debug(args ...interface{}) {
-	p.Print(1, logger.DEBUG, args...)
+	p.Print(1, iface.DEBUG, args...)
 }
 
 func (p *Logger) Debugf(format string, args ...interface{}) {
-	p.Printf(1, logger.DEBUG, format, args...)
+	p.Printf(1, iface.DEBUG, format, args...)
 }
 
 func (p *Logger) Debugw(message string, kvs ...interface{}) {
-	p.Printw(1, logger.DEBUG, message, kvs...)
+	p.Printw(1, iface.DEBUG, message, kvs...)
 }
 
 func (p *Logger) Info(args ...interface{}) {
-	p.Print(1, logger.INFO, args...)
+	p.Print(1, iface.INFO, args...)
 }
 
 func (p *Logger) Infof(format string, args ...interface{}) {
-	p.Printf(1, logger.INFO, format, args...)
+	p.Printf(1, iface.INFO, format, args...)
 }
 
 func (p *Logger) Infow(message string, kvs ...interface{}) {
-	p.Printw(1, logger.INFO, message, kvs...)
+	p.Printw(1, iface.INFO, message, kvs...)
 }
 
 func (p *Logger) Warn(args ...interface{}) {
-	p.Print(1, logger.WARN, args...)
+	p.Print(1, iface.WARN, args...)
 }
 
 func (p *Logger) Warnf(format string, args ...interface{}) {
-	p.Printf(1, logger.WARN, format, args...)
+	p.Printf(1, iface.WARN, format, args...)
 }
 
 func (p *Logger) Warnw(message string, kvs ...interface{}) {
-	p.Printw(1, logger.WARN, message, kvs...)
+	p.Printw(1, iface.WARN, message, kvs...)
 }
 
 func (p *Logger) Error(args ...interface{}) {
-	p.Print(1, logger.ERROR, args...)
+	p.Print(1, iface.ERROR, args...)
 }
 
 func (p *Logger) Errorf(format string, args ...interface{}) {
-	p.Printf(1, logger.ERROR, format, args...)
+	p.Printf(1, iface.ERROR, format, args...)
 }
 
 func (p *Logger) Errorw(message string, kvs ...interface{}) {
-	p.Printw(1, logger.ERROR, message, kvs...)
+	p.Printw(1, iface.ERROR, message, kvs...)
 }
 
 func (p *Logger) Panic(args ...interface{}) {
-	p.Print(1, logger.PANIC, args...)
+	p.Print(1, iface.PANIC, args...)
 }
 
 func (p *Logger) Panicf(format string, args ...interface{}) {
-	p.Printf(1, logger.PANIC, format, args...)
+	p.Printf(1, iface.PANIC, format, args...)
 }
 
 func (p *Logger) Panicw(message string, kvs ...interface{}) {
-	p.Printw(1, logger.PANIC, message, kvs...)
+	p.Printw(1, iface.PANIC, message, kvs...)
 }
 
 func (p *Logger) Fatal(args ...interface{}) {
-	p.Print(1, logger.FATAL, args...)
+	p.Print(1, iface.FATAL, args...)
 }
 
 func (p *Logger) Fatalf(format string, args ...interface{}) {
-	p.Printf(1, logger.FATAL, format, args...)
+	p.Printf(1, iface.FATAL, format, args...)
 }
 
 func (p *Logger) Fatalw(message string, kvs ...interface{}) {
-	p.Printw(1, logger.FATAL, message, kvs...)
+	p.Printw(1, iface.FATAL, message, kvs...)
 }
 
-func (p *Logger) Print(depth int, level logger.Level, args ...interface{}) {
+func (p *Logger) Print(depth int, level iface.Level, args ...interface{}) {
 	p.log(depth, zbase.ZapLevel(level), "", args, nil)
 }
 
-func (p *Logger) Printf(depth int, level logger.Level, format string, args ...interface{}) {
+func (p *Logger) Printf(depth int, level iface.Level, format string, args ...interface{}) {
 	p.log(depth, zbase.ZapLevel(level), format, args, nil)
 }
 
-func (p *Logger) Printw(depth int, level logger.Level, message string, kvs ...interface{}) {
+func (p *Logger) Printw(depth int, level iface.Level, message string, kvs ...interface{}) {
 	p.log(depth, zbase.ZapLevel(level), message, nil, kvs)
 }
 

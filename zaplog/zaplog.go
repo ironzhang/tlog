@@ -8,17 +8,17 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ironzhang/tlog/logger"
+	"github.com/ironzhang/tlog/iface"
 	"github.com/ironzhang/tlog/zaplog/zbase"
 	"github.com/ironzhang/tlog/zaplog/zlogger"
 )
 
 type ZapLogger struct {
-	logger.Logger
+	iface.Logger
 	level   zap.AtomicLevel
 	sinks   map[string]zap.Sink
 	cores   map[string]zapcore.Core
-	loggers map[string]logger.Logger
+	loggers map[string]iface.Logger
 }
 
 func NewZapLogger(cfg Config) (*ZapLogger, error) {
@@ -146,19 +146,19 @@ func (p *ZapLogger) Sync() error {
 	return err
 }
 
-func (p *ZapLogger) GetLevel() logger.Level {
+func (p *ZapLogger) GetLevel() iface.Level {
 	return zbase.LoggerLevel(p.level.Level())
 }
 
-func (p *ZapLogger) SetLevel(level logger.Level) {
+func (p *ZapLogger) SetLevel(level iface.Level) {
 	p.level.SetLevel(zbase.ZapLevel(level))
 }
 
-func (p *ZapLogger) GetDefaultLogger() logger.Logger {
+func (p *ZapLogger) GetDefaultLogger() iface.Logger {
 	return p.Logger
 }
 
-func (p *ZapLogger) GetLogger(name string) logger.Logger {
+func (p *ZapLogger) GetLogger(name string) iface.Logger {
 	if logger, ok := p.loggers[name]; ok {
 		return logger
 	}

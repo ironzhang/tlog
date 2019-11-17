@@ -3,49 +3,49 @@ package zbase
 import (
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ironzhang/tlog/logger"
+	"github.com/ironzhang/tlog/iface"
 )
 
-func ZapLevel(lv logger.Level) zapcore.Level {
+func ZapLevel(lv iface.Level) zapcore.Level {
 	switch lv {
-	case logger.DEBUG:
+	case iface.DEBUG:
 		return zapcore.DebugLevel
-	case logger.INFO:
+	case iface.INFO:
 		return zapcore.InfoLevel
-	case logger.WARN:
+	case iface.WARN:
 		return zapcore.WarnLevel
-	case logger.ERROR:
+	case iface.ERROR:
 		return zapcore.ErrorLevel
-	case logger.PANIC:
+	case iface.PANIC:
 		return zapcore.PanicLevel
-	case logger.FATAL:
+	case iface.FATAL:
 		return zapcore.FatalLevel
 	}
-	if lv > logger.FATAL {
+	if lv > iface.FATAL {
 		return zapcore.FatalLevel
 	}
 	return zapcore.DebugLevel
 }
 
-func LoggerLevel(lv zapcore.Level) logger.Level {
+func LoggerLevel(lv zapcore.Level) iface.Level {
 	switch lv {
 	case zapcore.DebugLevel:
-		return logger.DEBUG
+		return iface.DEBUG
 	case zapcore.InfoLevel:
-		return logger.INFO
+		return iface.INFO
 	case zapcore.WarnLevel:
-		return logger.WARN
+		return iface.WARN
 	case zapcore.ErrorLevel:
-		return logger.ERROR
+		return iface.ERROR
 	case zapcore.DPanicLevel:
-		return logger.PANIC
+		return iface.PANIC
 	case zapcore.PanicLevel:
-		return logger.PANIC
+		return iface.PANIC
 	case zapcore.FatalLevel:
-		return logger.FATAL
+		return iface.FATAL
 	}
 	if lv > zapcore.FatalLevel {
-		return logger.FATAL
+		return iface.FATAL
 	}
-	return logger.DEBUG
+	return iface.DEBUG
 }

@@ -3,22 +3,22 @@ package tlog
 import (
 	"context"
 
-	"github.com/ironzhang/tlog/logger"
+	"github.com/ironzhang/tlog/iface"
 )
 
-type Level = logger.Level
+type Level = iface.Level
 
 const (
-	DEBUG = logger.DEBUG
-	INFO  = logger.INFO
-	WARN  = logger.WARN
-	ERROR = logger.ERROR
-	PANIC = logger.PANIC
-	FATAL = logger.FATAL
+	DEBUG = iface.DEBUG
+	INFO  = iface.INFO
+	WARN  = iface.WARN
+	ERROR = iface.ERROR
+	PANIC = iface.PANIC
+	FATAL = iface.FATAL
 )
 
-type Logger = logger.Logger
-type Factory = logger.Factory
+type Logger = iface.Logger
+type Factory = iface.Factory
 
 type nopLogger struct {
 }
