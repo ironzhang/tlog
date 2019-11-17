@@ -7,8 +7,8 @@ import (
 )
 
 type SinkConfig struct {
-	Name string
-	URL  string
+	Name string `json:"name" yaml:"name"`
+	URL  string `json:"url" yaml:"url"`
 }
 
 type CoreConfig struct {
@@ -17,17 +17,17 @@ type CoreConfig struct {
 	Encoder  zapcore.EncoderConfig `json:"encoder" yaml:"encoder"`
 	MinLevel iface.Level           `json:"minLevel" yaml:"minLevel"`
 	MaxLevel iface.Level           `json:"maxLevel" yaml:"maxLevel"`
-	Sinks    []string              `json:"urls" yaml:"urls"`
+	Sinks    []string              `json:"sinks" yaml:"sinks"`
 }
 
 type LoggerConfig struct {
 	Name  string   `json:"name" yaml:"name"`
-	Cores []string `json:"devices" yaml:"devices"`
+	Cores []string `json:"cores" yaml:"cores"`
 }
 
 type Config struct {
-	Level   iface.Level `json:"level" yaml:"level"`
-	Sinks   []SinkConfig
-	Cores   []CoreConfig   `json:"devices" yaml:"devices"`
+	Level   iface.Level    `json:"level" yaml:"level"`
+	Sinks   []SinkConfig   `json:"sinks" yaml:"sinks"`
+	Cores   []CoreConfig   `json:"cores" yaml:"cores"`
 	Loggers []LoggerConfig `json:"loggers" yaml:"loggers"`
 }

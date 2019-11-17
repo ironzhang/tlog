@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ironzhang/tlog/iface"
+	"github.com/ironzhang/tlog/zaplog"
 )
 
 type Level = iface.Level
@@ -58,7 +59,7 @@ func (p nopLoggerFactory) GetLogger(name string) Logger {
 }
 
 func init() {
-	SetFactory(nil)
+	SetFactory(zaplog.DevelopmentLogger)
 }
 
 var logging Logger

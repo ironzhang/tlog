@@ -1,6 +1,7 @@
 package zaplog
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -13,44 +14,62 @@ import (
 	"github.com/ironzhang/tlog/zaplog/zlogger"
 )
 
+type ContextHook = zlogger.ContextHook
+
+type ContextHookFunc func(ctx context.Context) (args []interface{})
+
+func (f ContextHookFunc) WithContext(ctx context.Context) (args []interface{}) {
+	return f(ctx)
+}
+
 type Logger struct {
 	iface.Logger
+	hook    ContextHook
 	level   zap.AtomicLevel
 	sinks   map[string]zap.Sink
 	cores   map[string]zapcore.Core
 	loggers map[string]iface.Logger
 }
 
-func New(cfg Config) (*Logger, error) {
+func New(cfg Config, hook ContextHook) (*Logger, error) {
 	var logger Logger
-	if err := logger.init(cfg); err != nil {
+	if err := logger.init(cfg, hook); err != nil {
 		return nil, err
 	}
 	return &logger, nil
 }
 
-func (p *Logger) init(cfg Config) (err error) {
+func (p *Logger) init(cfg Config, hook ContextHook) (err error) {
+	p.hook = hook
 	p.level = zap.NewAtomicLevelAt(zbase.ZapLevel(cfg.Level))
+
+	p.sinks = make(map[string]zap.Sink)
 	for _, sink := range cfg.Sinks {
 		if err = p.openSink(sink); err != nil {
 			return err
 		}
 	}
+
+	p.cores = make(map[string]zapcore.Core)
 	for _, core := range cfg.Cores {
 		if err = p.openCore(core); err != nil {
 			return err
 		}
 	}
+
+	p.loggers = make(map[string]iface.Logger)
 	for _, logger := range cfg.Loggers {
 		if err = p.openLogger(logger); err != nil {
 			return err
 		}
 	}
-	def, ok := p.loggers["default"]
+
+	logger, ok := p.loggers["default"]
 	if !ok {
 		return errors.New("not find default logger")
 	}
-	p.Logger = def
+	p.Logger = logger
+
 	return nil
 }
 
@@ -101,7 +120,7 @@ func (p *Logger) openLogger(cfg LoggerConfig) error {
 	if err != nil {
 		return fmt.Errorf("combine core: %w", err)
 	}
-	p.loggers[cfg.Name] = zlogger.New(cfg.Name, core, nil)
+	p.loggers[cfg.Name] = zlogger.New(cfg.Name, core, p.hook)
 
 	return nil
 }
