@@ -7,7 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var DevelopmentConfig = Config{
+var stdConfig = Config{
 	Level: iface.DEBUG,
 	Sinks: []SinkConfig{
 		{
@@ -27,25 +27,31 @@ var DevelopmentConfig = Config{
 	},
 	Loggers: []LoggerConfig{
 		{
-			Name:  "default",
-			Cores: []string{"StderrCore"},
+			Name:            "default",
+			DisableCaller:   false,
+			StacktraceLevel: DisableStacktrace,
+			Cores:           []string{"StderrCore"},
 		},
 	},
 }
 
-var DevelopmentContextHook = func(ctx context.Context) (args []interface{}) {
-	return nil
-}
-
-var DevelopmentLogger *Logger
+var stdLogger *Logger
 
 func init() {
 	hook := func(ctx context.Context) (args []interface{}) {
-		return DevelopmentContextHook(ctx)
+		return StdContextHook(ctx)
 	}
-	logger, err := New(DevelopmentConfig, ContextHookFunc(hook))
+	logger, err := New(stdConfig, ContextHookFunc(hook))
 	if err != nil {
 		panic(err)
 	}
-	DevelopmentLogger = logger
+	stdLogger = logger
+}
+
+var StdContextHook = func(ctx context.Context) (args []interface{}) {
+	return nil
+}
+
+func StdLogger() *Logger {
+	return stdLogger
 }

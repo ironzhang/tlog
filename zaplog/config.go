@@ -6,6 +6,14 @@ import (
 	"github.com/ironzhang/tlog/iface"
 )
 
+type StacktraceLevel int8
+
+const (
+	DisableStacktrace StacktraceLevel = iota
+	WarnStacktrace
+	ErrorStacktrace
+)
+
 type SinkConfig struct {
 	Name string `json:"name" yaml:"name"`
 	URL  string `json:"url" yaml:"url"`
@@ -21,8 +29,10 @@ type CoreConfig struct {
 }
 
 type LoggerConfig struct {
-	Name  string   `json:"name" yaml:"name"`
-	Cores []string `json:"cores" yaml:"cores"`
+	Name            string          `json:"name" yaml:"name"`
+	DisableCaller   bool            `json:"disableCaller" yaml:"disableCaller"`
+	StacktraceLevel StacktraceLevel `json:"stacktraceLevel" yaml:"stacktraceLevel"`
+	Cores           []string        `json:"cores" yaml:"cores"`
 }
 
 type Config struct {

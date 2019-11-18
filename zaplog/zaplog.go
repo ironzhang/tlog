@@ -120,9 +120,28 @@ func (p *Logger) openLogger(cfg LoggerConfig) error {
 	if err != nil {
 		return fmt.Errorf("combine core: %w", err)
 	}
-	p.loggers[cfg.Name] = zlogger.New(cfg.Name, core, p.hook)
+
+	opts := p.buildLoggerOptions(cfg)
+	p.loggers[cfg.Name] = zlogger.New(cfg.Name, core, p.hook, opts...)
 
 	return nil
+}
+
+func (p *Logger) buildLoggerOptions(cfg LoggerConfig) []zap.Option {
+	var opts []zap.Option
+
+	if !cfg.DisableCaller {
+		opts = append(opts, zap.AddCaller())
+	}
+
+	switch cfg.StacktraceLevel {
+	case WarnStacktrace:
+		opts = append(opts, zap.AddStacktrace(zapcore.WarnLevel))
+	case ErrorStacktrace:
+		opts = append(opts, zap.AddStacktrace(zapcore.ErrorLevel))
+	}
+
+	return opts
 }
 
 func (p *Logger) combineSink(names []string) (zapcore.WriteSyncer, error) {

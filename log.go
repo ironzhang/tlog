@@ -59,7 +59,7 @@ func (p nopLoggerFactory) GetLogger(name string) Logger {
 }
 
 func init() {
-	SetFactory(zaplog.DevelopmentLogger)
+	SetFactory(zaplog.StdLogger())
 }
 
 var logging Logger
