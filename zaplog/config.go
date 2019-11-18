@@ -6,12 +6,12 @@ import (
 	"github.com/ironzhang/tlog/iface"
 )
 
-type StacktraceLevel int8
+type StacktraceLevel string
 
 const (
-	DisableStacktrace StacktraceLevel = iota
-	WarnStacktrace
-	ErrorStacktrace
+	DisableStacktrace StacktraceLevel = "DisableStacktrace"
+	WarnStacktrace                    = "WarnStacktrace"
+	ErrorStacktrace                   = "ErrorStacktrace"
 )
 
 type SinkConfig struct {
