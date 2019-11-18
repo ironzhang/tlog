@@ -37,3 +37,9 @@ type Logger interface {
 	Printf(depth int, level Level, format string, args ...interface{})
 	Printw(depth int, level Level, message string, kvs ...interface{})
 }
+
+// Factory 日志工厂接口
+type Factory interface {
+	GetDefaultLogger() Logger
+	GetLogger(name string) Logger
+}
