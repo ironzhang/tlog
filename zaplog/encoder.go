@@ -6,7 +6,21 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func newEncoder(name string, enc zapcore.EncoderConfig) (zapcore.Encoder, error) {
+func newEncoder(name string, cfg EncoderConfig) (zapcore.Encoder, error) {
+	enc := zapcore.EncoderConfig{
+		MessageKey:     cfg.MessageKey,
+		LevelKey:       cfg.LevelKey,
+		TimeKey:        cfg.TimeKey,
+		NameKey:        cfg.NameKey,
+		CallerKey:      cfg.CallerKey,
+		StacktraceKey:  cfg.StacktraceKey,
+		LineEnding:     cfg.LineEnding,
+		EncodeLevel:    cfg.EncodeLevel.zap(),
+		EncodeTime:     cfg.EncodeTime.zap(),
+		EncodeDuration: cfg.EncodeDuration.zap(),
+		EncodeCaller:   cfg.EncodeCaller.zap(),
+		EncodeName:     cfg.EncodeName.zap(),
+	}
 	switch name {
 	case "console":
 		return zapcore.NewConsoleEncoder(enc), nil

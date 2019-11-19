@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/ironzhang/tlog/iface"
-	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 var stdConfig = Config{
@@ -19,7 +19,19 @@ var stdConfig = Config{
 		{
 			Name:     "StderrCore",
 			Encoding: "console",
-			Encoder:  zap.NewDevelopmentEncoderConfig(),
+			Encoder: EncoderConfig{
+				TimeKey:        "T",
+				LevelKey:       "L",
+				NameKey:        "N",
+				CallerKey:      "C",
+				MessageKey:     "M",
+				StacktraceKey:  "S",
+				LineEnding:     zapcore.DefaultLineEnding,
+				EncodeLevel:    CapitalLevelEncoder,
+				EncodeTime:     ISO8601TimeEncoder,
+				EncodeDuration: StringDurationEncoder,
+				EncodeCaller:   ShortCallerEncoder,
+			},
 			MinLevel: iface.DEBUG,
 			MaxLevel: iface.FATAL,
 			Sinks:    []string{"StderrSink"},
