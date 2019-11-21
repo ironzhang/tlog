@@ -39,7 +39,7 @@ var stdConfig = Config{
 	},
 	Loggers: []LoggerConfig{
 		{
-			Name:            "default",
+			Name:            "",
 			DisableCaller:   false,
 			StacktraceLevel: DisableStacktrace,
 			Cores:           []string{"StderrCore"},

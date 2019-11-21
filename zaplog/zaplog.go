@@ -64,11 +64,11 @@ func (p *Logger) init(cfg Config, hook ContextHook) (err error) {
 		}
 	}
 
-	logger, ok := p.loggers["default"]
-	if !ok {
-		return errors.New("not find default logger")
+	if len(cfg.Loggers) <= 0 {
+		return errors.New("can't find any loggers")
 	}
-	p.Logger = logger
+	name := cfg.Loggers[0].Name
+	p.Logger = p.loggers[name]
 
 	return nil
 }
