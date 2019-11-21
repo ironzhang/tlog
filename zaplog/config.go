@@ -157,10 +157,10 @@ func (e TimeEncoder) zap() zapcore.TimeEncoder {
 		return zapcore.EpochMillisTimeEncoder
 	case ISO8601TimeEncoder:
 		return zapcore.ISO8601TimeEncoder
-		//	case RFC3339TimeEncoder:
-		//		return zapcore.RFC3339TimeEncoder
-		//	case RFC3339NanoTimeEncoder:
-		//		return zapcore.RFC3339NanoTimeEncoder
+	case RFC3339TimeEncoder:
+		return zapcore.RFC3339TimeEncoder
+	case RFC3339NanoTimeEncoder:
+		return zapcore.RFC3339NanoTimeEncoder
 	default:
 		return zapcore.EpochTimeEncoder
 	}
