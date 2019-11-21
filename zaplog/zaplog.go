@@ -168,18 +168,15 @@ func (p *Logger) combineCore(names []string) (zapcore.Core, error) {
 	return zapcore.NewTee(cores...), nil
 }
 
-func (p *Logger) Close() error {
-	p.Sync()
-
-	var err error
+func (p *Logger) Close() (err error) {
+	err = multierr.Append(err, p.Sync())
 	for _, sink := range p.sinks {
 		err = multierr.Append(err, sink.Close())
 	}
 	return err
 }
 
-func (p *Logger) Sync() error {
-	var err error
+func (p *Logger) Sync() (err error) {
 	for _, core := range p.cores {
 		err = multierr.Append(err, core.Sync())
 	}
