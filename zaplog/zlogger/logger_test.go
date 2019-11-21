@@ -32,7 +32,7 @@ func TestLoggerPrint(t *testing.T) {
 	min, max := iface.DEBUG, iface.ERROR
 	for lvl := min; lvl <= max; lvl++ {
 		logger.Print(0, lvl, "Print level", lvl)
-		logger.Printf(0, lvl, "Printf level=%d", lvl)
+		logger.Printf(0, lvl, "Printf level=%s", lvl)
 		logger.Printw(0, lvl, "Printw", "level", lvl)
 	}
 }
@@ -45,6 +45,7 @@ func TestLogger(t *testing.T) {
 		logger.Debug,
 		logger.Info,
 		logger.Warn,
+		logger.Error,
 	}
 	for _, log := range logFuncs {
 		log("hello", "world")
@@ -54,6 +55,8 @@ func TestLogger(t *testing.T) {
 	logfFuncs := []LogfFunc{
 		logger.Debugf,
 		logger.Infof,
+		logger.Warnf,
+		logger.Errorf,
 	}
 	for _, log := range logfFuncs {
 		log("hello, %s", "world")
@@ -63,6 +66,8 @@ func TestLogger(t *testing.T) {
 	logwFuncs := []LogwFunc{
 		logger.Debugw,
 		logger.Infow,
+		logger.Warnw,
+		logger.Errorw,
 	}
 	for _, log := range logwFuncs {
 		log("hello, world", "hello", "world")

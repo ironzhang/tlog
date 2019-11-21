@@ -25,7 +25,7 @@ type Logger struct {
 }
 
 func New(name string, core zapcore.Core, hook ContextHook, opts ...zap.Option) *Logger {
-	base := zap.New(core, opts...)
+	base := zap.New(core, opts...).Named(name)
 	return &Logger{
 		name: name,
 		base: base,
