@@ -11,8 +11,8 @@ type levelEnabler struct {
 }
 
 func (p *levelEnabler) Enabled(lvl zapcore.Level) bool {
-	if lvl < p.min || lvl > p.max {
-		return false
+	if p.min <= lvl && lvl <= p.max {
+		return p.level.Enabled(lvl)
 	}
-	return p.level.Enabled(lvl)
+	return false
 }

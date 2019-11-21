@@ -70,37 +70,37 @@ func (l *StacktraceLevel) unmarshalText(text []byte) bool {
 type LevelEncoder int8
 
 const (
-	LowercaseLevelEncoder LevelEncoder = iota
-	LowercaseColorLevelEncoder
-	CapitalLevelEncoder
+	CapitalLevelEncoder LevelEncoder = iota
 	CapitalColorLevelEncoder
+	LowercaseLevelEncoder
+	LowercaseColorLevelEncoder
 )
 
 func (e LevelEncoder) zap() zapcore.LevelEncoder {
 	switch e {
-	case LowercaseLevelEncoder:
-		return zapcore.LowercaseLevelEncoder
-	case LowercaseColorLevelEncoder:
-		return zapcore.LowercaseColorLevelEncoder
 	case CapitalLevelEncoder:
 		return zapcore.CapitalLevelEncoder
 	case CapitalColorLevelEncoder:
 		return zapcore.CapitalColorLevelEncoder
-	default:
+	case LowercaseLevelEncoder:
 		return zapcore.LowercaseLevelEncoder
+	case LowercaseColorLevelEncoder:
+		return zapcore.LowercaseColorLevelEncoder
+	default:
+		return zapcore.CapitalLevelEncoder
 	}
 }
 
 func (e LevelEncoder) String() string {
 	switch e {
-	case LowercaseLevelEncoder:
-		return "lowercase"
-	case LowercaseColorLevelEncoder:
-		return "lowercaseColor"
 	case CapitalLevelEncoder:
 		return "capital"
 	case CapitalColorLevelEncoder:
 		return "capitalColor"
+	case LowercaseLevelEncoder:
+		return "lowercase"
+	case LowercaseColorLevelEncoder:
+		return "lowercaseColor"
 	default:
 		return fmt.Sprintf("LevelEncoder(%d)", e)
 	}
@@ -122,14 +122,14 @@ func (e *LevelEncoder) UnmarshalText(text []byte) error {
 
 func (e *LevelEncoder) unmarshalText(text []byte) bool {
 	switch string(text) {
-	case "lowercase", "LOWERCASE", "":
-		*e = LowercaseLevelEncoder
-	case "lowercaseColor", "lowercasecolor", "LOWERCASECOLOR":
-		*e = LowercaseColorLevelEncoder
-	case "capital", "CAPITAL":
+	case "capital", "CAPITAL", "":
 		*e = CapitalLevelEncoder
 	case "capitalColor", "capitalcolor", "CAPITALCOLOR":
 		*e = CapitalColorLevelEncoder
+	case "lowercase", "LOWERCASE":
+		*e = LowercaseLevelEncoder
+	case "lowercaseColor", "lowercasecolor", "LOWERCASECOLOR":
+		*e = LowercaseColorLevelEncoder
 	default:
 		return false
 	}
@@ -139,43 +139,43 @@ func (e *LevelEncoder) unmarshalText(text []byte) bool {
 type TimeEncoder int8
 
 const (
-	EpochTimeEncoder TimeEncoder = iota
+	ISO8601TimeEncoder TimeEncoder = iota
+	EpochTimeEncoder
 	EpochNanosTimeEncoder
 	EpochMillisTimeEncoder
-	ISO8601TimeEncoder
 	RFC3339TimeEncoder
 	RFC3339NanoTimeEncoder
 )
 
 func (e TimeEncoder) zap() zapcore.TimeEncoder {
 	switch e {
+	case ISO8601TimeEncoder:
+		return zapcore.ISO8601TimeEncoder
 	case EpochTimeEncoder:
 		return zapcore.EpochTimeEncoder
 	case EpochNanosTimeEncoder:
 		return zapcore.EpochNanosTimeEncoder
 	case EpochMillisTimeEncoder:
 		return zapcore.EpochMillisTimeEncoder
-	case ISO8601TimeEncoder:
-		return zapcore.ISO8601TimeEncoder
 	case RFC3339TimeEncoder:
 		return zapcore.RFC3339TimeEncoder
 	case RFC3339NanoTimeEncoder:
 		return zapcore.RFC3339NanoTimeEncoder
 	default:
-		return zapcore.EpochTimeEncoder
+		return zapcore.ISO8601TimeEncoder
 	}
 }
 
 func (e TimeEncoder) String() string {
 	switch e {
+	case ISO8601TimeEncoder:
+		return "iso8601"
 	case EpochTimeEncoder:
 		return "epoch"
 	case EpochNanosTimeEncoder:
 		return "epochNanos"
 	case EpochMillisTimeEncoder:
 		return "epochMillis"
-	case ISO8601TimeEncoder:
-		return "iso8601"
 	case RFC3339TimeEncoder:
 		return "rfc3339"
 	case RFC3339NanoTimeEncoder:
@@ -201,14 +201,14 @@ func (e *TimeEncoder) UnmarshalText(text []byte) error {
 
 func (e *TimeEncoder) unmarshalText(text []byte) bool {
 	switch string(text) {
-	case "epoch", "EPOCH", "":
+	case "iso8601", "ISO8601", "":
+		*e = ISO8601TimeEncoder
+	case "epoch", "EPOCH":
 		*e = EpochTimeEncoder
 	case "epochNanos", "epochnanos", "EPOCHNANOS":
 		*e = EpochNanosTimeEncoder
 	case "epochMillis", "epochmillis", "EPOCHMILLIS":
 		*e = EpochMillisTimeEncoder
-	case "iso8601", "ISO8601":
-		*e = ISO8601TimeEncoder
 	case "rfc3339", "RFC3339":
 		*e = RFC3339TimeEncoder
 	case "rfc3339nano", "RFC3339NANO":
@@ -222,32 +222,32 @@ func (e *TimeEncoder) unmarshalText(text []byte) bool {
 type DurationEncoder int8
 
 const (
-	SecondsDurationEncoder DurationEncoder = iota
+	StringDurationEncoder DurationEncoder = iota
+	SecondsDurationEncoder
 	NanosDurationEncoder
-	StringDurationEncoder
 )
 
 func (e DurationEncoder) zap() zapcore.DurationEncoder {
 	switch e {
+	case StringDurationEncoder:
+		return zapcore.StringDurationEncoder
 	case SecondsDurationEncoder:
 		return zapcore.SecondsDurationEncoder
 	case NanosDurationEncoder:
 		return zapcore.NanosDurationEncoder
-	case StringDurationEncoder:
-		return zapcore.StringDurationEncoder
 	default:
-		return zapcore.SecondsDurationEncoder
+		return zapcore.StringDurationEncoder
 	}
 }
 
 func (e DurationEncoder) String() string {
 	switch e {
+	case StringDurationEncoder:
+		return "string"
 	case SecondsDurationEncoder:
 		return "seconds"
 	case NanosDurationEncoder:
 		return "nanos"
-	case StringDurationEncoder:
-		return "string"
 	default:
 		return fmt.Sprintf("DurationEncoder(%d)", e)
 	}
@@ -269,12 +269,12 @@ func (e *DurationEncoder) UnmarshalText(text []byte) error {
 
 func (e *DurationEncoder) unmarshalText(text []byte) bool {
 	switch string(text) {
-	case "seconds", "SECONDS", "":
+	case "string", "STRING", "":
+		*e = StringDurationEncoder
+	case "seconds", "SECONDS":
 		*e = SecondsDurationEncoder
 	case "nanos", "NANOS":
 		*e = NanosDurationEncoder
-	case "string", "STRING":
-		*e = StringDurationEncoder
 	default:
 		return false
 	}
@@ -396,7 +396,6 @@ type EncoderConfig struct {
 	NameKey        string          `json:"nameKey" yaml:"nameKey"`
 	CallerKey      string          `json:"callerKey" yaml:"callerKey"`
 	StacktraceKey  string          `json:"stacktraceKey" yaml:"stacktraceKey"`
-	LineEnding     string          `json:"lineEnding" yaml:"lineEnding"`
 	EncodeLevel    LevelEncoder    `json:"levelEncoder" yaml:"levelEncoder"`
 	EncodeTime     TimeEncoder     `json:"timeEncoder" yaml:"timeEncoder"`
 	EncodeDuration DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`

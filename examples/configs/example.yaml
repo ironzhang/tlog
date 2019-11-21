@@ -1,0 +1,138 @@
+level: info
+sinks:
+- name: debugSink
+  url: ./log/debug.log
+- name: infoSink
+  url: ./log/info.log
+- name: warnSink
+  url: ./log/warn.log
+- name: errorSink
+  url: ./log/error.log
+- name: fatalSink
+  url: ./log/fatal.log
+- name: accessSink
+  url: ./log/access.log
+cores:
+- name: debugCore
+  encoding: console
+  encoder:
+    messageKey: ""
+    levelKey: ""
+    timeKey: ""
+    nameKey: ""
+    callerKey: ""
+    stacktraceKey: ""
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: debug
+  maxLevel: debug
+  sinks:
+  - debugSink
+- name: infoCore
+  encoding: console
+  encoder:
+    messageKey: ""
+    levelKey: ""
+    timeKey: ""
+    nameKey: ""
+    callerKey: ""
+    stacktraceKey: ""
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: info
+  maxLevel: fatal
+  sinks:
+  - infoSink
+- name: warnCore
+  encoding: console
+  encoder:
+    messageKey: ""
+    levelKey: ""
+    timeKey: ""
+    nameKey: ""
+    callerKey: ""
+    stacktraceKey: ""
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: warn
+  maxLevel: fatal
+  sinks:
+  - warnSink
+- name: errorCore
+  encoding: console
+  encoder:
+    messageKey: ""
+    levelKey: ""
+    timeKey: ""
+    nameKey: ""
+    callerKey: ""
+    stacktraceKey: ""
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: error
+  maxLevel: fatal
+  sinks:
+  - errorSink
+- name: fatalCore
+  encoding: console
+  encoder:
+    messageKey: ""
+    levelKey: ""
+    timeKey: ""
+    nameKey: ""
+    callerKey: ""
+    stacktraceKey: ""
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: panic
+  maxLevel: fatal
+  sinks:
+  - fatalSink
+- name: accessCore
+  encoding: console
+  encoder:
+    messageKey: ""
+    levelKey: ""
+    timeKey: ""
+    nameKey: ""
+    callerKey: ""
+    stacktraceKey: ""
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: debug
+  maxLevel: fatal
+  sinks:
+  - accessSink
+loggers:
+- name: ""
+  disableCaller: false
+  stacktraceLevel: disable
+  cores:
+  - debugCore
+  - infoCore
+  - warnCore
+  - errorCore
+  - fatalCore
+- name: access
+  disableCaller: false
+  stacktraceLevel: disable
+  cores:
+  - accessCore

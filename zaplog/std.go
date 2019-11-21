@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/ironzhang/tlog/iface"
-	"go.uber.org/zap/zapcore"
 )
 
 var stdConfig = Config{
@@ -26,7 +25,6 @@ var stdConfig = Config{
 				CallerKey:      "C",
 				MessageKey:     "M",
 				StacktraceKey:  "S",
-				LineEnding:     zapcore.DefaultLineEnding,
 				EncodeLevel:    CapitalLevelEncoder,
 				EncodeTime:     ISO8601TimeEncoder,
 				EncodeDuration: StringDurationEncoder,

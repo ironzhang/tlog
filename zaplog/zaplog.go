@@ -169,6 +169,8 @@ func (p *Logger) combineCore(names []string) (zapcore.Core, error) {
 }
 
 func (p *Logger) Close() error {
+	p.Sync()
+
 	var err error
 	for _, sink := range p.sinks {
 		err = multierr.Append(err, sink.Close())

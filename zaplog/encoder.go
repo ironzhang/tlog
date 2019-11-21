@@ -14,13 +14,32 @@ func newEncoder(name string, cfg EncoderConfig) (zapcore.Encoder, error) {
 		NameKey:        cfg.NameKey,
 		CallerKey:      cfg.CallerKey,
 		StacktraceKey:  cfg.StacktraceKey,
-		LineEnding:     cfg.LineEnding,
+		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeLevel:    cfg.EncodeLevel.zap(),
 		EncodeTime:     cfg.EncodeTime.zap(),
 		EncodeDuration: cfg.EncodeDuration.zap(),
 		EncodeCaller:   cfg.EncodeCaller.zap(),
 		EncodeName:     cfg.EncodeName.zap(),
 	}
+	if enc.MessageKey == "" {
+		enc.MessageKey = "M"
+	}
+	if enc.LevelKey == "" {
+		enc.LevelKey = "L"
+	}
+	if enc.TimeKey == "" {
+		enc.TimeKey = "T"
+	}
+	if enc.NameKey == "" {
+		enc.NameKey = "N"
+	}
+	if enc.CallerKey == "" {
+		enc.CallerKey = "C"
+	}
+	if enc.StacktraceKey == "" {
+		enc.StacktraceKey = "S"
+	}
+
 	switch name {
 	case "console":
 		return zapcore.NewConsoleEncoder(enc), nil

@@ -1,0 +1,29 @@
+level: debug
+sinks:
+- name: StderrSink
+  url: stderr
+cores:
+- name: StderrCore
+  encoding: console
+  encoder:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: "N"
+    callerKey: C
+    stacktraceKey: S
+    levelEncoder: capital
+    timeEncoder: iso8601
+    durationEncoder: string
+    callerEncoder: short
+    nameEncoder: full
+  minLevel: debug
+  maxLevel: fatal
+  sinks:
+  - StderrSink
+loggers:
+- name: ""
+  disableCaller: false
+  stacktraceLevel: disable
+  cores:
+  - StderrCore
