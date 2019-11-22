@@ -78,7 +78,7 @@ func (p *Logger) openCore(cfg CoreConfig) error {
 		return fmt.Errorf("new encoder: %w", err)
 	}
 
-	sink, err := newSinks(cfg.SinkURLs)
+	sink, err := newSinks(cfg.URLs)
 	if err != nil {
 		return fmt.Errorf("new sinks: %w", err)
 	}

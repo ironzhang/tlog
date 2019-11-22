@@ -2,7 +2,7 @@
 	"level": "debug",
 	"cores": [
 		{
-			"name": "stderr",
+			"name": "Stderr",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "M",
@@ -30,7 +30,7 @@
 			"disableCaller": false,
 			"stacktraceLevel": "disable",
 			"cores": [
-				"stderr"
+				"Stderr"
 			]
 		}
 	]

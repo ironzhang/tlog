@@ -2,7 +2,7 @@
 	"level": "info",
 	"cores": [
 		{
-			"name": "debug",
+			"name": "Debug",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -24,7 +24,7 @@
 			]
 		},
 		{
-			"name": "info",
+			"name": "Info",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -46,7 +46,7 @@
 			]
 		},
 		{
-			"name": "warn",
+			"name": "Warn",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -68,7 +68,7 @@
 			]
 		},
 		{
-			"name": "error",
+			"name": "Error",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -90,7 +90,7 @@
 			]
 		},
 		{
-			"name": "fatal",
+			"name": "Fatal",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -112,7 +112,7 @@
 			]
 		},
 		{
-			"name": "access",
+			"name": "Access",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -140,11 +140,11 @@
 			"disableCaller": false,
 			"stacktraceLevel": "disable",
 			"cores": [
-				"debug",
-				"info",
-				"warn",
-				"error",
-				"fatal"
+				"Debug",
+				"Info",
+				"Warn",
+				"Error",
+				"Fatal"
 			]
 		},
 		{
@@ -152,7 +152,7 @@
 			"disableCaller": false,
 			"stacktraceLevel": "disable",
 			"cores": [
-				"access"
+				"Access"
 			]
 		}
 	]

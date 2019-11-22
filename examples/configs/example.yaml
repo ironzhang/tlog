@@ -1,6 +1,6 @@
 level: info
 cores:
-- name: debug
+- name: Debug
   encoding: console
   encoder:
     messageKey: ""
@@ -18,7 +18,7 @@ cores:
   maxLevel: debug
   urls:
   - ./log/debug.log
-- name: info
+- name: Info
   encoding: console
   encoder:
     messageKey: ""
@@ -36,7 +36,7 @@ cores:
   maxLevel: fatal
   urls:
   - ./log/info.log
-- name: warn
+- name: Warn
   encoding: console
   encoder:
     messageKey: ""
@@ -54,7 +54,7 @@ cores:
   maxLevel: fatal
   urls:
   - ./log/warn.log
-- name: error
+- name: Error
   encoding: console
   encoder:
     messageKey: ""
@@ -72,7 +72,7 @@ cores:
   maxLevel: fatal
   urls:
   - ./log/error.log
-- name: fatal
+- name: Fatal
   encoding: console
   encoder:
     messageKey: ""
@@ -90,7 +90,7 @@ cores:
   maxLevel: fatal
   urls:
   - ./log/fatal.log
-- name: access
+- name: Access
   encoding: console
   encoder:
     messageKey: ""
@@ -113,13 +113,13 @@ loggers:
   disableCaller: false
   stacktraceLevel: disable
   cores:
-  - debug
-  - info
-  - warn
-  - error
-  - fatal
+  - Debug
+  - Info
+  - Warn
+  - Error
+  - Fatal
 - name: access
   disableCaller: false
   stacktraceLevel: disable
   cores:
-  - access
+  - Access

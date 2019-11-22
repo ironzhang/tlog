@@ -10,7 +10,7 @@ var stdConfig = Config{
 	Level: iface.DEBUG,
 	Cores: []CoreConfig{
 		{
-			Name:     "StderrCore",
+			Name:     "Stderr",
 			Encoding: "console",
 			Encoder: EncoderConfig{
 				TimeKey:        "T",
@@ -26,7 +26,7 @@ var stdConfig = Config{
 			},
 			MinLevel: iface.DEBUG,
 			MaxLevel: iface.FATAL,
-			SinkURLs: []string{"stderr"},
+			URLs:     []string{"stderr"},
 		},
 	},
 	Loggers: []LoggerConfig{
@@ -34,7 +34,7 @@ var stdConfig = Config{
 			Name:            "",
 			DisableCaller:   false,
 			StacktraceLevel: DisableStacktrace,
-			Cores:           []string{"StderrCore"},
+			Cores:           []string{"Stderr"},
 		},
 	},
 }

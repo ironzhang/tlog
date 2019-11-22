@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func TestDevelopmentLogger(t *testing.T) {
-	logger := StdLogger().WithArgs("function", "TestDevelopmentLogger")
+func TestStdLogger(t *testing.T) {
+	logger := StdLogger().WithArgs("function", "TestStdLogger")
 
 	ctx := context.Background()
 	logger.WithContext(ctx).Debug("hello")

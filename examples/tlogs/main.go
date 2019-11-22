@@ -43,13 +43,13 @@ func run() {
 	tlog.Debug("debug")
 	tlog.Info("info")
 	tlog.Warn("warn")
-	//tlog.Error("error")
+	tlog.Error("error")
 	//tlog.Panic("panic")
 	//tlog.Fatal("fatal")
 
-	//	log := tlog.Named("access")
-	//	log.Debug("debug")
-	//	log.Info("info")
+	log := tlog.Named("access")
+	log.Debug("access debug")
+	log.Info("access info")
 	//	log.Warn("warn")
 	//	log.Error("error")
 }
