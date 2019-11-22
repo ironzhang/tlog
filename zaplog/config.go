@@ -425,3 +425,79 @@ type Config struct {
 	Cores   []CoreConfig   `json:"cores" yaml:"cores"`
 	Loggers []LoggerConfig `json:"loggers" yaml:"loggers"`
 }
+
+var ExampleConfig = Config{
+	Level: iface.INFO,
+	Sinks: []SinkConfig{
+		{
+			Name: "debugSink",
+			URL:  "./log/debug.log",
+		},
+		{
+			Name: "infoSink",
+			URL:  "./log/info.log",
+		},
+		{
+			Name: "warnSink",
+			URL:  "./log/warn.log",
+		},
+		{
+			Name: "errorSink",
+			URL:  "./log/error.log",
+		},
+		{
+			Name: "fatalSink",
+			URL:  "./log/fatal.log",
+		},
+	},
+	Cores: []CoreConfig{
+		{
+			Name:     "debugCore",
+			Encoding: "console",
+			Encoder:  EncoderConfig{},
+			MinLevel: iface.DEBUG,
+			MaxLevel: iface.DEBUG,
+			Sinks:    []string{"debugSink"},
+		},
+		{
+			Name:     "infoCore",
+			Encoding: "console",
+			Encoder:  EncoderConfig{},
+			MinLevel: iface.INFO,
+			MaxLevel: iface.FATAL,
+			Sinks:    []string{"infoSink"},
+		},
+		{
+			Name:     "warnCore",
+			Encoding: "console",
+			Encoder:  EncoderConfig{},
+			MinLevel: iface.WARN,
+			MaxLevel: iface.FATAL,
+			Sinks:    []string{"warnSink"},
+		},
+		{
+			Name:     "errorCore",
+			Encoding: "console",
+			Encoder:  EncoderConfig{},
+			MinLevel: iface.ERROR,
+			MaxLevel: iface.FATAL,
+			Sinks:    []string{"errorSink"},
+		},
+		{
+			Name:     "fatalCore",
+			Encoding: "console",
+			Encoder:  EncoderConfig{},
+			MinLevel: iface.PANIC,
+			MaxLevel: iface.FATAL,
+			Sinks:    []string{"fatalSink"},
+		},
+	},
+	Loggers: []LoggerConfig{
+		{
+			Name:            "",
+			DisableCaller:   false,
+			StacktraceLevel: DisableStacktrace,
+			Cores:           []string{"debugCore", "infoCore", "warnCore", "errorCore", "fatalCore"},
+		},
+	},
+}
