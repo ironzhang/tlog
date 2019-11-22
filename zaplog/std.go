@@ -45,7 +45,7 @@ func init() {
 	hook := func(ctx context.Context) (args []interface{}) {
 		return StdContextHook(ctx)
 	}
-	logger, err := New(stdConfig, ContextHookFunc(hook))
+	logger, err := New(stdConfig, SetContextHook(ContextHookFunc(hook)))
 	if err != nil {
 		panic(err)
 	}

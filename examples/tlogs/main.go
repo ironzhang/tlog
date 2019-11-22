@@ -32,7 +32,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "load config: %v", err)
 		return
 	}
-	logger, err := zaplog.New(cfg, nil)
+	logger, err := zaplog.New(cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "new logger: %v", err)
 		return

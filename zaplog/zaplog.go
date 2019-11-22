@@ -24,25 +24,28 @@ func (f ContextHookFunc) WithContext(ctx context.Context) (args []interface{}) {
 }
 
 type Logger struct {
+	hook  ContextHook
+	level zap.AtomicLevel
+
 	iface.Logger
-	hook    ContextHook
-	level   zap.AtomicLevel
 	closers []io.Closer
 	cores   map[string]zapcore.Core
 	loggers map[string]iface.Logger
 }
 
-func New(cfg Config, hook ContextHook) (*Logger, error) {
+func New(cfg Config, opts ...Option) (*Logger, error) {
 	var logger Logger
-	if err := logger.init(cfg, hook); err != nil {
+	if err := logger.init(cfg, opts); err != nil {
 		return nil, err
 	}
 	return &logger, nil
 }
 
-func (p *Logger) init(cfg Config, hook ContextHook) (err error) {
-	p.hook = hook
+func (p *Logger) init(cfg Config, opts []Option) (err error) {
 	p.level = zap.NewAtomicLevelAt(zbase.ZapLevel(cfg.Level))
+	for _, apply := range opts {
+		apply(p)
+	}
 
 	p.closers = make([]io.Closer, 0, len(cfg.Cores))
 	p.cores = make(map[string]zapcore.Core)
