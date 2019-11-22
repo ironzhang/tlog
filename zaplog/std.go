@@ -8,12 +8,6 @@ import (
 
 var stdConfig = Config{
 	Level: iface.DEBUG,
-	Sinks: []SinkConfig{
-		{
-			Name: "StderrSink",
-			URL:  "stderr",
-		},
-	},
 	Cores: []CoreConfig{
 		{
 			Name:     "StderrCore",
@@ -32,7 +26,7 @@ var stdConfig = Config{
 			},
 			MinLevel: iface.DEBUG,
 			MaxLevel: iface.FATAL,
-			Sinks:    []string{"StderrSink"},
+			SinkURLs: []string{"stderr"},
 		},
 	},
 	Loggers: []LoggerConfig{

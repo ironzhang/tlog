@@ -1,34 +1,8 @@
 {
 	"level": "info",
-	"sinks": [
-		{
-			"name": "debugSink",
-			"url": "./log/debug.log"
-		},
-		{
-			"name": "infoSink",
-			"url": "./log/info.log"
-		},
-		{
-			"name": "warnSink",
-			"url": "./log/warn.log"
-		},
-		{
-			"name": "errorSink",
-			"url": "./log/error.log"
-		},
-		{
-			"name": "fatalSink",
-			"url": "./log/fatal.log"
-		},
-		{
-			"name": "accessSink",
-			"url": "./log/access.log"
-		}
-	],
 	"cores": [
 		{
-			"name": "debugCore",
+			"name": "debug",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -45,12 +19,12 @@
 			},
 			"minLevel": "debug",
 			"maxLevel": "debug",
-			"sinks": [
-				"debugSink"
+			"urls": [
+				"./log/debug.log"
 			]
 		},
 		{
-			"name": "infoCore",
+			"name": "info",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -67,12 +41,12 @@
 			},
 			"minLevel": "info",
 			"maxLevel": "fatal",
-			"sinks": [
-				"infoSink"
+			"urls": [
+				"./log/info.log"
 			]
 		},
 		{
-			"name": "warnCore",
+			"name": "warn",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -89,12 +63,12 @@
 			},
 			"minLevel": "warn",
 			"maxLevel": "fatal",
-			"sinks": [
-				"warnSink"
+			"urls": [
+				"./log/warn.log"
 			]
 		},
 		{
-			"name": "errorCore",
+			"name": "error",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -111,12 +85,12 @@
 			},
 			"minLevel": "error",
 			"maxLevel": "fatal",
-			"sinks": [
-				"errorSink"
+			"urls": [
+				"./log/error.log"
 			]
 		},
 		{
-			"name": "fatalCore",
+			"name": "fatal",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -133,12 +107,12 @@
 			},
 			"minLevel": "panic",
 			"maxLevel": "fatal",
-			"sinks": [
-				"fatalSink"
+			"urls": [
+				"./log/fatal.log"
 			]
 		},
 		{
-			"name": "accessCore",
+			"name": "access",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "",
@@ -155,8 +129,8 @@
 			},
 			"minLevel": "debug",
 			"maxLevel": "fatal",
-			"sinks": [
-				"accessSink"
+			"urls": [
+				"./log/access.log"
 			]
 		}
 	],
@@ -166,11 +140,11 @@
 			"disableCaller": false,
 			"stacktraceLevel": "disable",
 			"cores": [
-				"debugCore",
-				"infoCore",
-				"warnCore",
-				"errorCore",
-				"fatalCore"
+				"debug",
+				"info",
+				"warn",
+				"error",
+				"fatal"
 			]
 		},
 		{
@@ -178,7 +152,7 @@
 			"disableCaller": false,
 			"stacktraceLevel": "disable",
 			"cores": [
-				"accessCore"
+				"access"
 			]
 		}
 	]

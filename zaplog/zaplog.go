@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"go.uber.org/multierr"
 	"go.uber.org/zap"
@@ -26,7 +27,7 @@ type Logger struct {
 	iface.Logger
 	hook    ContextHook
 	level   zap.AtomicLevel
-	sinks   map[string]zap.Sink
+	closers []io.Closer
 	cores   map[string]zapcore.Core
 	loggers map[string]iface.Logger
 }
@@ -43,13 +44,7 @@ func (p *Logger) init(cfg Config, hook ContextHook) (err error) {
 	p.hook = hook
 	p.level = zap.NewAtomicLevelAt(zbase.ZapLevel(cfg.Level))
 
-	p.sinks = make(map[string]zap.Sink)
-	for _, sink := range cfg.Sinks {
-		if err = p.openSink(sink); err != nil {
-			return err
-		}
-	}
-
+	p.closers = make([]io.Closer, 0, len(cfg.Cores))
 	p.cores = make(map[string]zapcore.Core)
 	for _, core := range cfg.Cores {
 		if err = p.openCore(core); err != nil {
@@ -73,18 +68,6 @@ func (p *Logger) init(cfg Config, hook ContextHook) (err error) {
 	return nil
 }
 
-func (p *Logger) openSink(cfg SinkConfig) error {
-	if _, ok := p.sinks[cfg.Name]; ok {
-		return fmt.Errorf("sink %q is already opened", cfg.Name)
-	}
-	sink, err := newSink(cfg.Name, cfg.URL)
-	if err != nil {
-		return fmt.Errorf("new sink: %w", err)
-	}
-	p.sinks[cfg.Name] = sink
-	return nil
-}
-
 func (p *Logger) openCore(cfg CoreConfig) error {
 	if _, ok := p.cores[cfg.Name]; ok {
 		return fmt.Errorf("core %q is already opened", cfg.Name)
@@ -95,9 +78,9 @@ func (p *Logger) openCore(cfg CoreConfig) error {
 		return fmt.Errorf("new encoder: %w", err)
 	}
 
-	ws, err := p.combineSink(cfg.Sinks)
+	sink, err := newSinks(cfg.SinkURLs)
 	if err != nil {
-		return fmt.Errorf("combine sink: %w", err)
+		return fmt.Errorf("new sinks: %w", err)
 	}
 
 	enab := &levelEnabler{
@@ -106,7 +89,8 @@ func (p *Logger) openCore(cfg CoreConfig) error {
 		level: p.level,
 	}
 
-	p.cores[cfg.Name] = zapcore.NewCore(enc, ws, enab)
+	p.closers = append(p.closers, sink)
+	p.cores[cfg.Name] = zapcore.NewCore(enc, sink, enab)
 
 	return nil
 }
@@ -127,6 +111,18 @@ func (p *Logger) openLogger(cfg LoggerConfig) error {
 	return nil
 }
 
+func (p *Logger) combineCore(names []string) (zapcore.Core, error) {
+	cores := make([]zapcore.Core, 0, len(names))
+	for _, name := range names {
+		core, ok := p.cores[name]
+		if !ok {
+			return nil, fmt.Errorf("not found core %q", name)
+		}
+		cores = append(cores, core)
+	}
+	return zapcore.NewTee(cores...), nil
+}
+
 func (p *Logger) buildLoggerOptions(cfg LoggerConfig) []zap.Option {
 	var opts []zap.Option
 
@@ -144,34 +140,10 @@ func (p *Logger) buildLoggerOptions(cfg LoggerConfig) []zap.Option {
 	return opts
 }
 
-func (p *Logger) combineSink(names []string) (zapcore.WriteSyncer, error) {
-	sinks := make([]zapcore.WriteSyncer, 0, len(names))
-	for _, name := range names {
-		sink, ok := p.sinks[name]
-		if !ok {
-			return nil, fmt.Errorf("not found sink %q", name)
-		}
-		sinks = append(sinks, sink)
-	}
-	return zap.CombineWriteSyncers(sinks...), nil
-}
-
-func (p *Logger) combineCore(names []string) (zapcore.Core, error) {
-	cores := make([]zapcore.Core, 0, len(names))
-	for _, name := range names {
-		core, ok := p.cores[name]
-		if !ok {
-			return nil, fmt.Errorf("not found core %q", name)
-		}
-		cores = append(cores, core)
-	}
-	return zapcore.NewTee(cores...), nil
-}
-
 func (p *Logger) Close() (err error) {
 	err = multierr.Append(err, p.Sync())
-	for _, sink := range p.sinks {
-		err = multierr.Append(err, sink.Close())
+	for _, c := range p.closers {
+		err = multierr.Append(err, c.Close())
 	}
 	return err
 }

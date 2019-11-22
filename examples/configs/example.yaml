@@ -1,19 +1,6 @@
 level: info
-sinks:
-- name: debugSink
-  url: ./log/debug.log
-- name: infoSink
-  url: ./log/info.log
-- name: warnSink
-  url: ./log/warn.log
-- name: errorSink
-  url: ./log/error.log
-- name: fatalSink
-  url: ./log/fatal.log
-- name: accessSink
-  url: ./log/access.log
 cores:
-- name: debugCore
+- name: debug
   encoding: console
   encoder:
     messageKey: ""
@@ -29,9 +16,9 @@ cores:
     nameEncoder: full
   minLevel: debug
   maxLevel: debug
-  sinks:
-  - debugSink
-- name: infoCore
+  urls:
+  - ./log/debug.log
+- name: info
   encoding: console
   encoder:
     messageKey: ""
@@ -47,9 +34,9 @@ cores:
     nameEncoder: full
   minLevel: info
   maxLevel: fatal
-  sinks:
-  - infoSink
-- name: warnCore
+  urls:
+  - ./log/info.log
+- name: warn
   encoding: console
   encoder:
     messageKey: ""
@@ -65,9 +52,9 @@ cores:
     nameEncoder: full
   minLevel: warn
   maxLevel: fatal
-  sinks:
-  - warnSink
-- name: errorCore
+  urls:
+  - ./log/warn.log
+- name: error
   encoding: console
   encoder:
     messageKey: ""
@@ -83,9 +70,9 @@ cores:
     nameEncoder: full
   minLevel: error
   maxLevel: fatal
-  sinks:
-  - errorSink
-- name: fatalCore
+  urls:
+  - ./log/error.log
+- name: fatal
   encoding: console
   encoder:
     messageKey: ""
@@ -101,9 +88,9 @@ cores:
     nameEncoder: full
   minLevel: panic
   maxLevel: fatal
-  sinks:
-  - fatalSink
-- name: accessCore
+  urls:
+  - ./log/fatal.log
+- name: access
   encoding: console
   encoder:
     messageKey: ""
@@ -119,20 +106,20 @@ cores:
     nameEncoder: full
   minLevel: debug
   maxLevel: fatal
-  sinks:
-  - accessSink
+  urls:
+  - ./log/access.log
 loggers:
 - name: ""
   disableCaller: false
   stacktraceLevel: disable
   cores:
-  - debugCore
-  - infoCore
-  - warnCore
-  - errorCore
-  - fatalCore
+  - debug
+  - info
+  - warn
+  - error
+  - fatal
 - name: access
   disableCaller: false
   stacktraceLevel: disable
   cores:
-  - accessCore
+  - access

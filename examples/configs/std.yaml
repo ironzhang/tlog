@@ -1,9 +1,6 @@
 level: debug
-sinks:
-- name: StderrSink
-  url: stderr
 cores:
-- name: StderrCore
+- name: stderr
   encoding: console
   encoder:
     messageKey: M
@@ -19,11 +16,11 @@ cores:
     nameEncoder: full
   minLevel: debug
   maxLevel: fatal
-  sinks:
-  - StderrSink
+  urls:
+  - stderr
 loggers:
 - name: ""
   disableCaller: false
   stacktraceLevel: disable
   cores:
-  - StderrCore
+  - stderr

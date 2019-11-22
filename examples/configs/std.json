@@ -1,14 +1,8 @@
 {
 	"level": "debug",
-	"sinks": [
-		{
-			"name": "StderrSink",
-			"url": "stderr"
-		}
-	],
 	"cores": [
 		{
-			"name": "StderrCore",
+			"name": "stderr",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "M",
@@ -25,8 +19,8 @@
 			},
 			"minLevel": "debug",
 			"maxLevel": "fatal",
-			"sinks": [
-				"StderrSink"
+			"urls": [
+				"stderr"
 			]
 		}
 	],
@@ -36,7 +30,7 @@
 			"disableCaller": false,
 			"stacktraceLevel": "disable",
 			"cores": [
-				"StderrCore"
+				"stderr"
 			]
 		}
 	]

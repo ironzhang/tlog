@@ -42,7 +42,7 @@ func main() {
 func run() {
 	tlog.Debug("debug")
 	tlog.Info("info")
-	//tlog.Warn("warn")
+	tlog.Warn("warn")
 	//tlog.Error("error")
 	//tlog.Panic("panic")
 	//tlog.Fatal("fatal")

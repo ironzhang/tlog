@@ -14,15 +14,9 @@ import (
 var configs = []zaplog.Config{
 	{
 		Level: iface.DEBUG,
-		Sinks: []zaplog.SinkConfig{
-			{
-				Name: "StderrSink",
-				URL:  "stderr",
-			},
-		},
 		Cores: []zaplog.CoreConfig{
 			{
-				Name:     "StderrCore",
+				Name:     "stderr",
 				Encoding: "console",
 				Encoder: zaplog.EncoderConfig{
 					MessageKey:     "M",
@@ -38,7 +32,7 @@ var configs = []zaplog.Config{
 				},
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,
-				Sinks:    []string{"StderrSink"},
+				SinkURLs: []string{"stderr"},
 			},
 		},
 		Loggers: []zaplog.LoggerConfig{
@@ -46,86 +40,60 @@ var configs = []zaplog.Config{
 				Name:            "",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.DisableStacktrace,
-				Cores:           []string{"StderrCore"},
+				Cores:           []string{"stderr"},
 			},
 		},
 	},
 	{
 		Level: iface.INFO,
-		Sinks: []zaplog.SinkConfig{
-			{
-				Name: "debugSink",
-				URL:  "./log/debug.log",
-			},
-			{
-				Name: "infoSink",
-				URL:  "./log/info.log",
-			},
-			{
-				Name: "warnSink",
-				URL:  "./log/warn.log",
-			},
-			{
-				Name: "errorSink",
-				URL:  "./log/error.log",
-			},
-			{
-				Name: "fatalSink",
-				URL:  "./log/fatal.log",
-			},
-			{
-				Name: "accessSink",
-				URL:  "./log/access.log",
-			},
-		},
 		Cores: []zaplog.CoreConfig{
 			{
-				Name:     "debugCore",
+				Name:     "debug",
 				Encoding: "console",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.DEBUG,
-				Sinks:    []string{"debugSink"},
+				SinkURLs: []string{"./log/debug.log"},
 			},
 			{
-				Name:     "infoCore",
+				Name:     "info",
 				Encoding: "console",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.INFO,
 				MaxLevel: iface.FATAL,
-				Sinks:    []string{"infoSink"},
+				SinkURLs: []string{"./log/info.log"},
 			},
 			{
-				Name:     "warnCore",
+				Name:     "warn",
 				Encoding: "console",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.WARN,
 				MaxLevel: iface.FATAL,
-				Sinks:    []string{"warnSink"},
+				SinkURLs: []string{"./log/warn.log"},
 			},
 			{
-				Name:     "errorCore",
+				Name:     "error",
 				Encoding: "console",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.ERROR,
 				MaxLevel: iface.FATAL,
-				Sinks:    []string{"errorSink"},
+				SinkURLs: []string{"./log/error.log"},
 			},
 			{
-				Name:     "fatalCore",
+				Name:     "fatal",
 				Encoding: "console",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.PANIC,
 				MaxLevel: iface.FATAL,
-				Sinks:    []string{"fatalSink"},
+				SinkURLs: []string{"./log/fatal.log"},
 			},
 			{
-				Name:     "accessCore",
+				Name:     "access",
 				Encoding: "console",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,
-				Sinks:    []string{"accessSink"},
+				SinkURLs: []string{"./log/access.log"},
 			},
 		},
 		Loggers: []zaplog.LoggerConfig{
@@ -133,13 +101,13 @@ var configs = []zaplog.Config{
 				Name:            "",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.DisableStacktrace,
-				Cores:           []string{"debugCore", "infoCore", "warnCore", "errorCore", "fatalCore"},
+				Cores:           []string{"debug", "info", "warn", "error", "fatal"},
 			},
 			{
 				Name:            "access",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.DisableStacktrace,
-				Cores:           []string{"accessCore"},
+				Cores:           []string{"access"},
 			},
 		},
 	},
