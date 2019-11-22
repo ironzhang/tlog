@@ -385,39 +385,39 @@ func (e *NameEncoder) unmarshalText(text []byte) bool {
 }
 
 type EncoderConfig struct {
-	MessageKey     string          `json:"messageKey" yaml:"messageKey"`
-	LevelKey       string          `json:"levelKey" yaml:"levelKey"`
-	TimeKey        string          `json:"timeKey" yaml:"timeKey"`
-	NameKey        string          `json:"nameKey" yaml:"nameKey"`
-	CallerKey      string          `json:"callerKey" yaml:"callerKey"`
-	StacktraceKey  string          `json:"stacktraceKey" yaml:"stacktraceKey"`
-	EncodeLevel    LevelEncoder    `json:"levelEncoder" yaml:"levelEncoder"`
-	EncodeTime     TimeEncoder     `json:"timeEncoder" yaml:"timeEncoder"`
-	EncodeDuration DurationEncoder `json:"durationEncoder" yaml:"durationEncoder"`
-	EncodeCaller   CallerEncoder   `json:"callerEncoder" yaml:"callerEncoder"`
-	EncodeName     NameEncoder     `json:"nameEncoder" yaml:"nameEncoder"`
+	MessageKey     string          `json:"messageKey,omitempty" yaml:"messageKey,omitempty"`
+	LevelKey       string          `json:"levelKey,omitempty" yaml:"levelKey,omitempty"`
+	TimeKey        string          `json:"timeKey,omitempty" yaml:"timeKey,omitempty"`
+	NameKey        string          `json:"nameKey,omitempty" yaml:"nameKey,omitempty"`
+	CallerKey      string          `json:"callerKey,omitempty" yaml:"callerKey,omitempty"`
+	StacktraceKey  string          `json:"stacktraceKey,omitempty" yaml:"stacktraceKey,omitempty"`
+	EncodeLevel    LevelEncoder    `json:"levelEncoder,omitempty" yaml:"levelEncoder,omitempty"`
+	EncodeTime     TimeEncoder     `json:"timeEncoder,omitempty" yaml:"timeEncoder,omitempty"`
+	EncodeDuration DurationEncoder `json:"durationEncoder,omitempty" yaml:"durationEncoder,omitempty"`
+	EncodeCaller   CallerEncoder   `json:"callerEncoder,omitempty" yaml:"callerEncoder,omitempty"`
+	EncodeName     NameEncoder     `json:"nameEncoder,omitempty" yaml:"nameEncoder,omitempty"`
 }
 
 type CoreConfig struct {
-	Name     string        `json:"name" yaml:"name"`
-	Encoding string        `json:"encoding" yaml:"encoding"`
-	Encoder  EncoderConfig `json:"encoder" yaml:"encoder"`
+	Name     string        `json:"name,omitempty" yaml:"name,omitempty"`
+	Encoding string        `json:"encoding,omitempty" yaml:"encoding,omitempty"`
+	Encoder  EncoderConfig `json:"encoder,omitempty" yaml:"encoder,omitempty"`
 	MinLevel iface.Level   `json:"minLevel" yaml:"minLevel"`
 	MaxLevel iface.Level   `json:"maxLevel" yaml:"maxLevel"`
-	URLs     []string      `json:"urls" yaml:"urls"`
+	URLs     []string      `json:"urls,omitempty" yaml:"urls,omitempty"`
 }
 
 type LoggerConfig struct {
-	Name            string          `json:"name" yaml:"name"`
-	DisableCaller   bool            `json:"disableCaller" yaml:"disableCaller"`
-	StacktraceLevel StacktraceLevel `json:"stacktraceLevel" yaml:"stacktraceLevel"`
-	Cores           []string        `json:"cores" yaml:"cores"`
+	Name            string          `json:"name,omitempty" yaml:"name,omitempty"`
+	DisableCaller   bool            `json:"disableCaller,omitempty" yaml:"disableCaller,omitempty"`
+	StacktraceLevel StacktraceLevel `json:"stacktraceLevel,omitempty" yaml:"stacktraceLevel,omitempty"`
+	Cores           []string        `json:"cores,omitempty" yaml:"cores,omitempty"`
 }
 
 type Config struct {
-	Level   iface.Level    `json:"level" yaml:"level"`
-	Cores   []CoreConfig   `json:"cores" yaml:"cores"`
-	Loggers []LoggerConfig `json:"loggers" yaml:"loggers"`
+	Level   iface.Level    `json:"level,omitempty" yaml:"level,omitempty"`
+	Cores   []CoreConfig   `json:"cores,omitempty" yaml:"cores,omitempty"`
+	Loggers []LoggerConfig `json:"loggers,omitempty" yaml:"loggers,omitempty"`
 }
 
 var ExampleConfig = Config{

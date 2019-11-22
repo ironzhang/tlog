@@ -11,11 +11,7 @@
 				"nameKey": "N",
 				"callerKey": "C",
 				"stacktraceKey": "S",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
+				"levelEncoder": "capitalColor"
 			},
 			"minLevel": "debug",
 			"maxLevel": "fatal",
@@ -26,9 +22,6 @@
 	],
 	"loggers": [
 		{
-			"name": "",
-			"disableCaller": false,
-			"stacktraceLevel": "disable",
 			"cores": [
 				"Stderr"
 			]

@@ -1,22 +1,8 @@
 {
-	"level": "info",
 	"cores": [
 		{
 			"name": "Debug",
-			"encoding": "console",
-			"encoder": {
-				"messageKey": "",
-				"levelKey": "",
-				"timeKey": "",
-				"nameKey": "",
-				"callerKey": "",
-				"stacktraceKey": "",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
-			},
+			"encoder": {},
 			"minLevel": "debug",
 			"maxLevel": "debug",
 			"urls": [
@@ -25,20 +11,7 @@
 		},
 		{
 			"name": "Info",
-			"encoding": "console",
-			"encoder": {
-				"messageKey": "",
-				"levelKey": "",
-				"timeKey": "",
-				"nameKey": "",
-				"callerKey": "",
-				"stacktraceKey": "",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
-			},
+			"encoder": {},
 			"minLevel": "info",
 			"maxLevel": "fatal",
 			"urls": [
@@ -47,20 +20,7 @@
 		},
 		{
 			"name": "Warn",
-			"encoding": "console",
-			"encoder": {
-				"messageKey": "",
-				"levelKey": "",
-				"timeKey": "",
-				"nameKey": "",
-				"callerKey": "",
-				"stacktraceKey": "",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
-			},
+			"encoder": {},
 			"minLevel": "warn",
 			"maxLevel": "fatal",
 			"urls": [
@@ -69,20 +29,7 @@
 		},
 		{
 			"name": "Error",
-			"encoding": "console",
-			"encoder": {
-				"messageKey": "",
-				"levelKey": "",
-				"timeKey": "",
-				"nameKey": "",
-				"callerKey": "",
-				"stacktraceKey": "",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
-			},
+			"encoder": {},
 			"minLevel": "error",
 			"maxLevel": "fatal",
 			"urls": [
@@ -91,20 +38,7 @@
 		},
 		{
 			"name": "Fatal",
-			"encoding": "console",
-			"encoder": {
-				"messageKey": "",
-				"levelKey": "",
-				"timeKey": "",
-				"nameKey": "",
-				"callerKey": "",
-				"stacktraceKey": "",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
-			},
+			"encoder": {},
 			"minLevel": "panic",
 			"maxLevel": "fatal",
 			"urls": [
@@ -113,20 +47,7 @@
 		},
 		{
 			"name": "Access",
-			"encoding": "console",
-			"encoder": {
-				"messageKey": "",
-				"levelKey": "",
-				"timeKey": "",
-				"nameKey": "",
-				"callerKey": "",
-				"stacktraceKey": "",
-				"levelEncoder": "capital",
-				"timeEncoder": "iso8601",
-				"durationEncoder": "string",
-				"callerEncoder": "short",
-				"nameEncoder": "full"
-			},
+			"encoder": {},
 			"minLevel": "debug",
 			"maxLevel": "fatal",
 			"urls": [
@@ -136,9 +57,6 @@
 	],
 	"loggers": [
 		{
-			"name": "",
-			"disableCaller": false,
-			"stacktraceLevel": "disable",
 			"cores": [
 				"Debug",
 				"Info",
@@ -149,8 +67,6 @@
 		},
 		{
 			"name": "access",
-			"disableCaller": false,
-			"stacktraceLevel": "disable",
 			"cores": [
 				"Access"
 			]

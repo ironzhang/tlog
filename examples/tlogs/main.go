@@ -22,7 +22,12 @@ func LoadConfig(file string) (conf zaplog.Config, err error) {
 }
 
 func main() {
-	cfg, err := LoadConfig("../configs/example.json")
+	file := "../configs/std.json"
+	if len(os.Args) >= 2 {
+		file = os.Args[1]
+	}
+
+	cfg, err := LoadConfig(file)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "load config: %v", err)
 		return

@@ -25,10 +25,11 @@ var configs = []zaplog.Config{
 					NameKey:        "N",
 					CallerKey:      "C",
 					StacktraceKey:  "S",
-					EncodeLevel:    zaplog.CapitalLevelEncoder,
+					EncodeLevel:    zaplog.CapitalColorLevelEncoder,
 					EncodeTime:     zaplog.ISO8601TimeEncoder,
 					EncodeDuration: zaplog.StringDurationEncoder,
 					EncodeCaller:   zaplog.ShortCallerEncoder,
+					EncodeName:     zaplog.FullNameEncoder,
 				},
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,
@@ -49,7 +50,7 @@ var configs = []zaplog.Config{
 		Cores: []zaplog.CoreConfig{
 			{
 				Name:     "Debug",
-				Encoding: "console",
+				Encoding: "",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.DEBUG,
@@ -57,7 +58,7 @@ var configs = []zaplog.Config{
 			},
 			{
 				Name:     "Info",
-				Encoding: "console",
+				Encoding: "",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.INFO,
 				MaxLevel: iface.FATAL,
@@ -65,7 +66,7 @@ var configs = []zaplog.Config{
 			},
 			{
 				Name:     "Warn",
-				Encoding: "console",
+				Encoding: "",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.WARN,
 				MaxLevel: iface.FATAL,
@@ -73,7 +74,7 @@ var configs = []zaplog.Config{
 			},
 			{
 				Name:     "Error",
-				Encoding: "console",
+				Encoding: "",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.ERROR,
 				MaxLevel: iface.FATAL,
@@ -81,7 +82,7 @@ var configs = []zaplog.Config{
 			},
 			{
 				Name:     "Fatal",
-				Encoding: "console",
+				Encoding: "",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.PANIC,
 				MaxLevel: iface.FATAL,
@@ -89,7 +90,7 @@ var configs = []zaplog.Config{
 			},
 			{
 				Name:     "Access",
-				Encoding: "console",
+				Encoding: "",
 				Encoder:  zaplog.EncoderConfig{},
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,

@@ -41,7 +41,7 @@ func newEncoder(name string, cfg EncoderConfig) (zapcore.Encoder, error) {
 	}
 
 	switch name {
-	case "console":
+	case "console", "":
 		return zapcore.NewConsoleEncoder(enc), nil
 	case "json":
 		return zapcore.NewJSONEncoder(enc), nil

@@ -1,125 +1,41 @@
-level: info
 cores:
 - name: Debug
-  encoding: console
-  encoder:
-    messageKey: ""
-    levelKey: ""
-    timeKey: ""
-    nameKey: ""
-    callerKey: ""
-    stacktraceKey: ""
-    levelEncoder: capital
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: short
-    nameEncoder: full
   minLevel: debug
   maxLevel: debug
   urls:
   - ./log/debug.log
 - name: Info
-  encoding: console
-  encoder:
-    messageKey: ""
-    levelKey: ""
-    timeKey: ""
-    nameKey: ""
-    callerKey: ""
-    stacktraceKey: ""
-    levelEncoder: capital
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: short
-    nameEncoder: full
   minLevel: info
   maxLevel: fatal
   urls:
   - ./log/info.log
 - name: Warn
-  encoding: console
-  encoder:
-    messageKey: ""
-    levelKey: ""
-    timeKey: ""
-    nameKey: ""
-    callerKey: ""
-    stacktraceKey: ""
-    levelEncoder: capital
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: short
-    nameEncoder: full
   minLevel: warn
   maxLevel: fatal
   urls:
   - ./log/warn.log
 - name: Error
-  encoding: console
-  encoder:
-    messageKey: ""
-    levelKey: ""
-    timeKey: ""
-    nameKey: ""
-    callerKey: ""
-    stacktraceKey: ""
-    levelEncoder: capital
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: short
-    nameEncoder: full
   minLevel: error
   maxLevel: fatal
   urls:
   - ./log/error.log
 - name: Fatal
-  encoding: console
-  encoder:
-    messageKey: ""
-    levelKey: ""
-    timeKey: ""
-    nameKey: ""
-    callerKey: ""
-    stacktraceKey: ""
-    levelEncoder: capital
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: short
-    nameEncoder: full
   minLevel: panic
   maxLevel: fatal
   urls:
   - ./log/fatal.log
 - name: Access
-  encoding: console
-  encoder:
-    messageKey: ""
-    levelKey: ""
-    timeKey: ""
-    nameKey: ""
-    callerKey: ""
-    stacktraceKey: ""
-    levelEncoder: capital
-    timeEncoder: iso8601
-    durationEncoder: string
-    callerEncoder: short
-    nameEncoder: full
   minLevel: debug
   maxLevel: fatal
   urls:
   - ./log/access.log
 loggers:
-- name: ""
-  disableCaller: false
-  stacktraceLevel: disable
-  cores:
+- cores:
   - Debug
   - Info
   - Warn
   - Error
   - Fatal
 - name: access
-  disableCaller: false
-  stacktraceLevel: disable
   cores:
   - Access
