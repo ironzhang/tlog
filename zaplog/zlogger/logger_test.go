@@ -14,6 +14,17 @@ import (
 	"github.com/ironzhang/tlog/zaplog/zbase"
 )
 
+type TContextHook struct {
+	trace bool
+}
+
+func (p *TContextHook) WithContext(ctx context.Context) (args []interface{}) {
+	if p.trace {
+		args = append(args, "trace_id", "123456")
+	}
+	return args
+}
+
 type TLogged struct {
 	entries []observer.LoggedEntry
 }
@@ -35,7 +46,7 @@ func TestLoggerPrint(t *testing.T) {
 	var logged TLogged
 	logger, logs := NewTestLogger(t, "", iface.DEBUG, nil)
 
-	min, max := iface.DEBUG, iface.ERROR
+	min, max := iface.DEBUG-1, iface.ERROR
 	for lvl := min; lvl <= max; lvl++ {
 		logger.Print(0, lvl, "Print", lvl)
 		logger.Printf(0, lvl, "Print: %v", lvl)
@@ -45,6 +56,21 @@ func TestLoggerPrint(t *testing.T) {
 		logged.Add(zapcore.Entry{Level: zbase.ZapLevel(lvl), Message: fmt.Sprintf("Print: %v", lvl)})
 		logged.Add(zapcore.Entry{Level: zbase.ZapLevel(lvl), Message: "Print"}, zap.Any("level", lvl))
 	}
+
+	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
+}
+
+func TestLoggerLevel(t *testing.T) {
+	var logged TLogged
+	logger, logs := NewTestLogger(t, "", iface.WARN, nil)
+
+	logger.Debug("debug")
+	logger.Info("info")
+	logger.Warn("warn")
+	logger.Error("error")
+
+	logged.Add(zapcore.Entry{Level: zapcore.WarnLevel, Message: "warn"})
+	logged.Add(zapcore.Entry{Level: zapcore.ErrorLevel, Message: "error"})
 
 	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
 }
@@ -111,27 +137,19 @@ func TestLoggerPanic(t *testing.T) {
 	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
 }
 
-type TContextHook struct{}
-
-func (p TContextHook) WithContext(ctx context.Context) []interface{} {
-	return []interface{}{"trace_id", "123456"}
-}
-
-func TestLoggerWith(t *testing.T) {
+func TestLoggerWithArgs(t *testing.T) {
 	var logged TLogged
-	logger, logs := NewTestLogger(t, "", iface.DEBUG, TContextHook{})
+	logger, logs := NewTestLogger(t, "", iface.DEBUG, nil)
 
+	logger.WithArgs().Info()
 	logger.WithArgs("k1", "v1").Info()
 	logger.WithArgs("k2", "v2").Info()
-	logger.WithContext(context.Background()).Info()
-	logger.WithArgs("k3", "v3").WithContext(context.Background()).Info()
-	logger.WithContext(context.Background()).WithArgs("k4", "v4").Info()
+	logger.WithArgs("k3", "v3").WithArgs("k4", "v4").Info()
 
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel})
 	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("k1", "v1"))
 	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("k2", "v2"))
-	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("trace_id", "123456"))
-	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("trace_id", "123456"), zap.String("k3", "v3"))
-	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("trace_id", "123456"), zap.String("k4", "v4"))
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("k3", "v3"), zap.String("k4", "v4"))
 
 	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
 }
@@ -141,7 +159,31 @@ func TestLoggerWithoutContext(t *testing.T) {
 	logger, logs := NewTestLogger(t, "", iface.DEBUG, nil)
 
 	logger.WithContext(context.Background()).Info()
+	logger.WithContext(context.Background()).WithArgs("k1", "v1").Info()
+
 	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel})
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("k1", "v1"))
+
+	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
+}
+
+func TestLoggerWithContext(t *testing.T) {
+	hook := TContextHook{}
+
+	var logged TLogged
+	logger, logs := NewTestLogger(t, "", iface.DEBUG, &hook)
+
+	logger.WithContext(context.Background()).Info()
+	hook.trace = true
+	logger.WithContext(context.Background()).Info()
+	logger.WithContext(context.Background()).WithArgs("k1", "v1").Info()
+	logger.WithArgs("k2", "v2").WithContext(context.Background()).Info()
+
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel})
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("trace_id", "123456"))
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("trace_id", "123456"), zap.String("k1", "v1"))
+	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel}, zap.String("trace_id", "123456"), zap.String("k2", "v2"))
+
 	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
 }
 
