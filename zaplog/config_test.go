@@ -23,16 +23,14 @@ func matchError(t testing.TB, err error, errstr string) bool {
 	return false
 }
 
-func TestStacktraceLevel(t *testing.T) {
+func TestStacktraceLevelMarshal(t *testing.T) {
 	tests := []struct {
-		l   StacktraceLevel
-		s   string
-		err string
+		l StacktraceLevel
+		s string
 	}{
 		{
-			l:   -1,
-			s:   "StacktraceLevel(-1)",
-			err: "unrecognized stacktrace level",
+			l: -1,
+			s: "StacktraceLevel(-1)",
 		},
 		{
 			l: DisableStacktrace,
@@ -48,13 +46,6 @@ func TestStacktraceLevel(t *testing.T) {
 		},
 	}
 	for i, tt := range tests {
-		s := tt.l.String()
-		if got, want := s, tt.s; got != want {
-			t.Errorf("%d: string: got %v, want %v", i, got, want)
-			continue
-		}
-		t.Logf("%d: string: got %s", i, s)
-
 		text, err := tt.l.MarshalText()
 		if err != nil {
 			t.Errorf("%d: marshal text: %v", i, err)
@@ -65,9 +56,47 @@ func TestStacktraceLevel(t *testing.T) {
 			continue
 		}
 		t.Logf("%d: text: got %s", i, text)
+	}
+}
 
+func TestStacktraceLevelUnmarshal(t *testing.T) {
+	tests := []struct {
+		s   string
+		l   StacktraceLevel
+		err string
+	}{
+		{
+			s:   "unknown",
+			err: "unrecognized stacktrace level",
+		},
+		{
+			s:   "StacktraceLevel(-1)",
+			err: "unrecognized stacktrace level",
+		},
+		{
+			s: "disable",
+			l: DisableStacktrace,
+		},
+		{
+			s: "warn",
+			l: WarnStacktrace,
+		},
+		{
+			s: "error",
+			l: ErrorStacktrace,
+		},
+		{
+			s: "ERROR",
+			l: ErrorStacktrace,
+		},
+		{
+			s: "Error",
+			l: ErrorStacktrace,
+		},
+	}
+	for i, tt := range tests {
 		var l StacktraceLevel
-		err = l.UnmarshalText([]byte(tt.s))
+		err := l.UnmarshalText([]byte(tt.s))
 		if !matchError(t, err, tt.err) {
 			t.Errorf("%d: match error: got %v, want %v", i, err, tt.err)
 			continue
