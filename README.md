@@ -9,4 +9,5 @@ Team Log
 - [ ] 补齐测试
 - [ ] 日志切割
 - [ ] 文档示例
+- [ ] go vet && golint
 

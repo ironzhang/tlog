@@ -33,7 +33,7 @@ func (p *TLogged) Add(e zapcore.Entry, fields ...zapcore.Field) {
 	if len(fields) == 0 {
 		fields = []zapcore.Field{}
 	}
-	p.entries = append(p.entries, observer.LoggedEntry{e, fields})
+	p.entries = append(p.entries, observer.LoggedEntry{Entry: e, Context: fields})
 }
 
 func NewTestLogger(t testing.TB, name string, level iface.Level, hook ContextHook,
