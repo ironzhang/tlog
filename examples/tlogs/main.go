@@ -52,7 +52,7 @@ func run() {
 	//tlog.Panic("panic")
 	//tlog.Fatal("fatal")
 
-	log := tlog.Named("access")
+	log := tlog.GetLogger("access")
 	log.Debug("access debug")
 	log.Info("access info")
 	//	log.Warn("warn")
