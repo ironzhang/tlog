@@ -16,7 +16,6 @@ type ContextHook interface {
 }
 
 type Logger struct {
-	name string
 	base *zap.Logger
 	hook ContextHook
 
@@ -27,7 +26,6 @@ type Logger struct {
 func New(name string, core zapcore.Core, hook ContextHook, opts ...zap.Option) *Logger {
 	base := zap.New(core, opts...).Named(name)
 	return &Logger{
-		name: name,
 		base: base,
 		hook: hook,
 	}
@@ -35,7 +33,6 @@ func New(name string, core zapcore.Core, hook ContextHook, opts ...zap.Option) *
 
 func (p *Logger) clone(nctxs, nargs int) *Logger {
 	c := &Logger{
-		name: p.name,
 		base: p.base,
 		hook: p.hook,
 	}
@@ -48,10 +45,6 @@ func (p *Logger) clone(nctxs, nargs int) *Logger {
 		copy(c.args, p.args)
 	}
 	return c
-}
-
-func (p *Logger) Name() string {
-	return p.name
 }
 
 func (p *Logger) WithArgs(args ...interface{}) iface.Logger {

@@ -73,7 +73,7 @@ func SetFactory(f Factory) {
 	logging = f.GetDefaultLogger()
 }
 
-func Named(name string) Logger {
+func GetLogger(name string) Logger {
 	return factory.GetLogger(name)
 }
 

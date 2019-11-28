@@ -191,10 +191,6 @@ func TestLoggerName(t *testing.T) {
 	var logged TLogged
 	logger, logs := NewTestLogger(t, "name", iface.DEBUG, nil)
 
-	if got, want := logger.Name(), "name"; got != want {
-		t.Fatalf("logger name is %q, isn't %q", got, want)
-	}
-
 	logger.Info()
 	logged.Add(zapcore.Entry{Level: zapcore.InfoLevel, LoggerName: "name"})
 	assert.Equal(t, logged.entries, logs.AllUntimed(), "unexpected log entries")
