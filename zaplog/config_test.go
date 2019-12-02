@@ -194,3 +194,83 @@ func TestLevelEncoderUnmarshal(t *testing.T) {
 		t.Logf("%d: level encoder: got %v", i, e)
 	}
 }
+
+func TestTimeEncoderMarshal(t *testing.T) {
+	tests := []struct {
+		e TimeEncoder
+		s string
+	}{
+		{e: -1, s: "TimeEncoder(-1)"},
+		{e: ISO8601TimeEncoder, s: "iso8601"},
+		{e: EpochTimeEncoder, s: "epoch"},
+		{e: EpochNanosTimeEncoder, s: "epochNanos"},
+		{e: EpochMillisTimeEncoder, s: "epochMillis"},
+		{e: RFC3339TimeEncoder, s: "rfc3339"},
+		{e: RFC3339NanoTimeEncoder, s: "rfc3339nano"},
+	}
+	for i, tt := range tests {
+		text, err := tt.e.MarshalText()
+		if err != nil {
+			t.Errorf("%d: marshal text: %v", i, err)
+			continue
+		}
+		if got, want := string(text), tt.s; got != want {
+			t.Errorf("%d: text: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: text: got %s", i, text)
+	}
+}
+
+func TestTimeEncoderUnmarshal(t *testing.T) {
+	tests := []struct {
+		s   string
+		e   TimeEncoder
+		err string
+	}{
+		{s: "TimeEncoder(-1)", err: "unrecognized time encoder"},
+		{s: "iso8601", e: ISO8601TimeEncoder},
+		{s: "epoch", e: EpochTimeEncoder},
+		{s: "epochNanos", e: EpochNanosTimeEncoder},
+		{s: "epochMillis", e: EpochMillisTimeEncoder},
+		{s: "rfc3339", e: RFC3339TimeEncoder},
+		{s: "rfc3339nano", e: RFC3339NanoTimeEncoder},
+		{s: "RFC3339NANO", e: RFC3339NanoTimeEncoder},
+		{s: "rFC3339NANO", e: RFC3339NanoTimeEncoder},
+	}
+	for i, tt := range tests {
+		var e TimeEncoder
+		err := e.UnmarshalText([]byte(tt.s))
+		if !matchError(t, err, tt.err) {
+			t.Errorf("%d: match error: got %v, want %v", i, err, tt.err)
+			continue
+		}
+		if err != nil {
+			t.Logf("%d: unmarshal text: %v", i, err)
+			continue
+		}
+		if got, want := e, tt.e; got != want {
+			t.Errorf("%d: time encoder: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: time encoder: got %v", i, e)
+	}
+}
+
+func TestDurationEncoderMarshal(t *testing.T) {
+}
+
+func TestDurationEncoderUnmarshal(t *testing.T) {
+}
+
+func TestCallerEncoderMarshal(t *testing.T) {
+}
+
+func TestCallerEncoderUnmarshal(t *testing.T) {
+}
+
+func TestNameEncoderMarshal(t *testing.T) {
+}
+
+func TestNameEncoderUnmarshal(t *testing.T) {
+}

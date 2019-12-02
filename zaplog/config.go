@@ -193,7 +193,7 @@ func (e *TimeEncoder) UnmarshalText(text []byte) error {
 	if e == nil {
 		return errUnmarshalNilTimeEncoder
 	}
-	if !e.unmarshalText(text) && !e.unmarshalText(text) {
+	if !e.unmarshalText(text) && !e.unmarshalText(bytes.ToLower(text)) {
 		return fmt.Errorf("unrecognized time encoder %q", text)
 	}
 	return nil
@@ -261,7 +261,7 @@ func (e *DurationEncoder) UnmarshalText(text []byte) error {
 	if e == nil {
 		return errUnmarshalNilDurationEncoder
 	}
-	if !e.unmarshalText(text) && !e.unmarshalText(text) {
+	if !e.unmarshalText(text) && !e.unmarshalText(bytes.ToLower(text)) {
 		return fmt.Errorf("unrecognized duration encoder %q", text)
 	}
 	return nil
@@ -318,7 +318,7 @@ func (e *CallerEncoder) UnmarshalText(text []byte) error {
 	if e == nil {
 		return errUnmarshalNilCallerEncoder
 	}
-	if !e.unmarshalText(text) && !e.unmarshalText(text) {
+	if !e.unmarshalText(text) && !e.unmarshalText(bytes.ToLower(text)) {
 		return fmt.Errorf("unrecognized caller encoder %q", text)
 	}
 	return nil
@@ -368,7 +368,7 @@ func (e *NameEncoder) UnmarshalText(text []byte) error {
 	if e == nil {
 		return errUnmarshalNilNameEncoder
 	}
-	if !e.unmarshalText(text) && !e.unmarshalText(text) {
+	if !e.unmarshalText(text) && !e.unmarshalText(bytes.ToLower(text)) {
 		return fmt.Errorf("unrecognized name encoder %q", text)
 	}
 	return nil
