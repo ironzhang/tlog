@@ -258,9 +258,59 @@ func TestTimeEncoderUnmarshal(t *testing.T) {
 }
 
 func TestDurationEncoderMarshal(t *testing.T) {
+	tests := []struct {
+		e DurationEncoder
+		s string
+	}{
+		{e: -1, s: "DurationEncoder(-1)"},
+		{e: StringDurationEncoder, s: "string"},
+		{e: SecondsDurationEncoder, s: "seconds"},
+		{e: NanosDurationEncoder, s: "nanos"},
+	}
+	for i, tt := range tests {
+		text, err := tt.e.MarshalText()
+		if err != nil {
+			t.Errorf("%d: marshal text: %v", i, err)
+			continue
+		}
+		if got, want := string(text), tt.s; got != want {
+			t.Errorf("%d: text: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: text: got %s", i, text)
+	}
 }
 
 func TestDurationEncoderUnmarshal(t *testing.T) {
+	tests := []struct {
+		s   string
+		e   DurationEncoder
+		err string
+	}{
+		{s: "DurationEncoder(-1)", err: "unrecognized duration encoder"},
+		{s: "string", e: StringDurationEncoder},
+		{s: "seconds", e: SecondsDurationEncoder},
+		{s: "nanos", e: NanosDurationEncoder},
+		{s: "NANOS", e: NanosDurationEncoder},
+		{s: "nANOS", e: NanosDurationEncoder},
+	}
+	for i, tt := range tests {
+		var e DurationEncoder
+		err := e.UnmarshalText([]byte(tt.s))
+		if !matchError(t, err, tt.err) {
+			t.Errorf("%d: match error: got %v, want %v", i, err, tt.err)
+			continue
+		}
+		if err != nil {
+			t.Logf("%d: unmarshal text: %v", i, err)
+			continue
+		}
+		if got, want := e, tt.e; got != want {
+			t.Errorf("%d: duration encoder: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: duration encoder: got %v", i, e)
+	}
 }
 
 func TestCallerEncoderMarshal(t *testing.T) {
