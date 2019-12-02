@@ -28,22 +28,10 @@ func TestStacktraceLevelMarshal(t *testing.T) {
 		l StacktraceLevel
 		s string
 	}{
-		{
-			l: -1,
-			s: "StacktraceLevel(-1)",
-		},
-		{
-			l: DisableStacktrace,
-			s: "disable",
-		},
-		{
-			l: WarnStacktrace,
-			s: "warn",
-		},
-		{
-			l: ErrorStacktrace,
-			s: "error",
-		},
+		{l: -1, s: "StacktraceLevel(-1)"},
+		{l: DisableStacktrace, s: "disable"},
+		{l: WarnStacktrace, s: "warn"},
+		{l: ErrorStacktrace, s: "error"},
 	}
 	for i, tt := range tests {
 		text, err := tt.l.MarshalText()
@@ -65,34 +53,14 @@ func TestStacktraceLevelUnmarshal(t *testing.T) {
 		l   StacktraceLevel
 		err string
 	}{
-		{
-			s:   "unknown",
-			err: "unrecognized stacktrace level",
-		},
-		{
-			s:   "StacktraceLevel(-1)",
-			err: "unrecognized stacktrace level",
-		},
-		{
-			s: "disable",
-			l: DisableStacktrace,
-		},
-		{
-			s: "warn",
-			l: WarnStacktrace,
-		},
-		{
-			s: "error",
-			l: ErrorStacktrace,
-		},
-		{
-			s: "ERROR",
-			l: ErrorStacktrace,
-		},
-		{
-			s: "Error",
-			l: ErrorStacktrace,
-		},
+		{s: "unknown", err: "unrecognized stacktrace level"},
+		{s: "StacktraceLevel(-1)", err: "unrecognized stacktrace level"},
+		{s: "", l: DisableStacktrace},
+		{s: "disable", l: DisableStacktrace},
+		{s: "warn", l: WarnStacktrace},
+		{s: "error", l: ErrorStacktrace},
+		{s: "ERROR", l: ErrorStacktrace},
+		{s: "Error", l: ErrorStacktrace},
 	}
 	for i, tt := range tests {
 		var l StacktraceLevel
@@ -113,39 +81,16 @@ func TestStacktraceLevelUnmarshal(t *testing.T) {
 	}
 }
 
-/*
-func TestLevelEncoderZap(t *testing.T) {
-	tests := []struct {
-		e LevelEncoder
-		z zapcore.LevelEncoder
-	}{
-		{
-			e: CapitalLevelEncoder,
-			z: zapcore.CapitalLevelEncoder,
-		},
-	}
-	for i, tt := range tests {
-		z := tt.e.zap()
-		e := zapcore.NewMapObjectEncoder()
-		z(zapcore.DebugLevel, e)
-		if got, want := z, tt.z; !assert.Equal(t, got, want) {
-			t.Errorf("%d: zap: got %v, want %v", i, got, want)
-			continue
-		}
-	}
-}
-*/
-
 func TestLevelEncoderMarshal(t *testing.T) {
 	tests := []struct {
 		e LevelEncoder
 		s string
 	}{
-		{-1, "LevelEncoder(-1)"},
-		{CapitalLevelEncoder, "capital"},
-		{CapitalColorLevelEncoder, "capitalColor"},
-		{LowercaseLevelEncoder, "lowercase"},
-		{LowercaseColorLevelEncoder, "lowercaseColor"},
+		{e: -1, s: "LevelEncoder(-1)"},
+		{e: CapitalLevelEncoder, s: "capital"},
+		{e: CapitalColorLevelEncoder, s: "capitalColor"},
+		{e: LowercaseLevelEncoder, s: "lowercase"},
+		{e: LowercaseColorLevelEncoder, s: "lowercaseColor"},
 	}
 	for i, tt := range tests {
 		text, err := tt.e.MarshalText()
@@ -168,6 +113,7 @@ func TestLevelEncoderUnmarshal(t *testing.T) {
 		err string
 	}{
 		{s: "LevelEncoder(-1)", err: "unrecognized level encoder"},
+		{s: "", e: CapitalLevelEncoder},
 		{s: "capital", e: CapitalLevelEncoder},
 		{s: "capitalColor", e: CapitalColorLevelEncoder},
 		{s: "lowercase", e: LowercaseLevelEncoder},
@@ -229,6 +175,7 @@ func TestTimeEncoderUnmarshal(t *testing.T) {
 		err string
 	}{
 		{s: "TimeEncoder(-1)", err: "unrecognized time encoder"},
+		{s: "", e: ISO8601TimeEncoder},
 		{s: "iso8601", e: ISO8601TimeEncoder},
 		{s: "epoch", e: EpochTimeEncoder},
 		{s: "epochNanos", e: EpochNanosTimeEncoder},
@@ -288,6 +235,7 @@ func TestDurationEncoderUnmarshal(t *testing.T) {
 		err string
 	}{
 		{s: "DurationEncoder(-1)", err: "unrecognized duration encoder"},
+		{s: "", e: StringDurationEncoder},
 		{s: "string", e: StringDurationEncoder},
 		{s: "seconds", e: SecondsDurationEncoder},
 		{s: "nanos", e: NanosDurationEncoder},
