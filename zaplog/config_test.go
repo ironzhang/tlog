@@ -262,13 +262,109 @@ func TestDurationEncoderUnmarshal(t *testing.T) {
 }
 
 func TestCallerEncoderMarshal(t *testing.T) {
+	tests := []struct {
+		e CallerEncoder
+		s string
+	}{
+		{e: -1, s: "CallerEncoder(-1)"},
+		{e: ShortCallerEncoder, s: "short"},
+		{e: FullCallerEncoder, s: "full"},
+	}
+	for i, tt := range tests {
+		text, err := tt.e.MarshalText()
+		if err != nil {
+			t.Errorf("%d: marshal text: %v", i, err)
+			continue
+		}
+		if got, want := string(text), tt.s; got != want {
+			t.Errorf("%d: text: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: text: got %s", i, text)
+	}
 }
 
 func TestCallerEncoderUnmarshal(t *testing.T) {
+	tests := []struct {
+		s   string
+		e   CallerEncoder
+		err string
+	}{
+		{s: "CallerEncoder(-1)", err: "unrecognized caller encoder"},
+		{s: "", e: ShortCallerEncoder},
+		{s: "short", e: ShortCallerEncoder},
+		{s: "full", e: FullCallerEncoder},
+		{s: "FULL", e: FullCallerEncoder},
+		{s: "fULL", e: FullCallerEncoder},
+	}
+	for i, tt := range tests {
+		var e CallerEncoder
+		err := e.UnmarshalText([]byte(tt.s))
+		if !matchError(t, err, tt.err) {
+			t.Errorf("%d: match error: got %v, want %v", i, err, tt.err)
+			continue
+		}
+		if err != nil {
+			t.Logf("%d: unmarshal text: %v", i, err)
+			continue
+		}
+		if got, want := e, tt.e; got != want {
+			t.Errorf("%d: caller encoder: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: caller encoder: got %v", i, e)
+	}
 }
 
 func TestNameEncoderMarshal(t *testing.T) {
+	tests := []struct {
+		e NameEncoder
+		s string
+	}{
+		{e: -1, s: "NameEncoder(-1)"},
+		{e: FullNameEncoder, s: "full"},
+	}
+	for i, tt := range tests {
+		text, err := tt.e.MarshalText()
+		if err != nil {
+			t.Errorf("%d: marshal text: %v", i, err)
+			continue
+		}
+		if got, want := string(text), tt.s; got != want {
+			t.Errorf("%d: text: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: text: got %s", i, text)
+	}
 }
 
 func TestNameEncoderUnmarshal(t *testing.T) {
+	tests := []struct {
+		s   string
+		e   NameEncoder
+		err string
+	}{
+		{s: "NameEncoder(-1)", err: "unrecognized name encoder"},
+		{s: "", e: FullNameEncoder},
+		{s: "full", e: FullNameEncoder},
+		{s: "Full", e: FullNameEncoder},
+		{s: "fULL", e: FullNameEncoder},
+	}
+	for i, tt := range tests {
+		var e NameEncoder
+		err := e.UnmarshalText([]byte(tt.s))
+		if !matchError(t, err, tt.err) {
+			t.Errorf("%d: match error: got %v, want %v", i, err, tt.err)
+			continue
+		}
+		if err != nil {
+			t.Logf("%d: unmarshal text: %v", i, err)
+			continue
+		}
+		if got, want := e, tt.e; got != want {
+			t.Errorf("%d: name encoder: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: name encoder: got %v", i, e)
+	}
 }
