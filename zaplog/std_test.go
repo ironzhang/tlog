@@ -5,16 +5,18 @@ import (
 	"testing"
 )
 
-func TestStdLogger(t *testing.T) {
-	logger := StdLogger().WithArgs("function", "TestStdLogger")
+func TestStdContextHook(t *testing.T) {
+	call := 0
 
-	ctx := context.Background()
-	logger.WithContext(ctx).Debug("hello")
-
+	logger := StdLogger()
+	logger.WithContext(context.Background())
 	StdContextHook = func(ctx context.Context) []interface{} {
-		return []interface{}{"TraceID", "123456"}
+		call++
+		return nil
 	}
-	logger.WithContext(ctx).Debug("hello")
-	logger.WithContext(ctx).Warn("warn")
-	logger.WithContext(ctx).Error("error")
+	logger.WithContext(context.Background())
+
+	if call != 1 {
+		t.Errorf("call: got %v, want %v", call, 1)
+	}
 }
