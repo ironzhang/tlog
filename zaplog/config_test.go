@@ -3,6 +3,10 @@ package zaplog
 import (
 	"regexp"
 	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap/zapcore"
 )
 
 func matchError(t testing.TB, err error, errstr string) bool {
@@ -366,5 +370,122 @@ func TestNameEncoderUnmarshal(t *testing.T) {
 			continue
 		}
 		t.Logf("%d: name encoder: got %v", i, e)
+	}
+}
+
+type tPrimitiveArrayEncoder struct {
+	elems []interface{}
+}
+
+func (p *tPrimitiveArrayEncoder) AppendBool(v bool)             { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendByteString(v []byte)     { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendComplex128(v complex128) { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendComplex64(v complex64)   { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendFloat64(v float64)       { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendFloat32(v float32)       { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendInt(v int)               { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendInt64(v int64)           { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendInt32(v int32)           { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendInt16(v int16)           { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendInt8(v int8)             { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendString(v string)         { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendUint(v uint)             { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendUint64(v uint64)         { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendUint32(v uint32)         { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendUint16(v uint16)         { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendUint8(v uint8)           { p.elems = append(p.elems, v) }
+func (p *tPrimitiveArrayEncoder) AppendUintptr(v uintptr)       { p.elems = append(p.elems, v) }
+
+func TestLevelEncoder(t *testing.T) {
+	tests := []struct {
+		encoder LevelEncoder
+		elems   []interface{}
+	}{
+		{encoder: -1, elems: []interface{}{"INFO"}},
+		{encoder: CapitalLevelEncoder, elems: []interface{}{"INFO"}},
+		{encoder: LowercaseLevelEncoder, elems: []interface{}{"info"}},
+		{encoder: CapitalColorLevelEncoder, elems: []interface{}{"\x1b[34mINFO\x1b[0m"}},
+		{encoder: LowercaseColorLevelEncoder, elems: []interface{}{"\x1b[34minfo\x1b[0m"}},
+	}
+	for i, tt := range tests {
+		enc := &tPrimitiveArrayEncoder{}
+		tt.encoder.zap()(zapcore.InfoLevel, enc)
+		assert.Equal(t, tt.elems, enc.elems, "%d: unexpected level encoder elements", i)
+	}
+}
+
+func TestTimeEncoder(t *testing.T) {
+	ts := time.Date(1970, time.January, 1, 0, 0, 0, 0, time.UTC)
+	tests := []struct {
+		encoder TimeEncoder
+		elems   []interface{}
+	}{
+		{encoder: -1, elems: []interface{}{ts.Format("2006-01-02T15:04:05.000Z0700")}},
+		{encoder: ISO8601TimeEncoder, elems: []interface{}{ts.Format("2006-01-02T15:04:05.000Z0700")}},
+		{encoder: EpochTimeEncoder, elems: []interface{}{float64(0)}},
+		{encoder: EpochNanosTimeEncoder, elems: []interface{}{int64(0)}},
+		{encoder: EpochMillisTimeEncoder, elems: []interface{}{float64(0)}},
+		{encoder: RFC3339TimeEncoder, elems: []interface{}{ts.Format(time.RFC3339)}},
+		{encoder: RFC3339NanoTimeEncoder, elems: []interface{}{ts.Format(time.RFC3339Nano)}},
+	}
+	for i, tt := range tests {
+		enc := &tPrimitiveArrayEncoder{}
+		tt.encoder.zap()(ts, enc)
+		assert.Equal(t, tt.elems, enc.elems, "%d: unexpected time encoder elements", i)
+	}
+}
+
+func TestDurationEncoder(t *testing.T) {
+	d := time.Minute
+	tests := []struct {
+		encoder DurationEncoder
+		elems   []interface{}
+	}{
+		{encoder: -1, elems: []interface{}{d.String()}},
+		{encoder: StringDurationEncoder, elems: []interface{}{d.String()}},
+		{encoder: SecondsDurationEncoder, elems: []interface{}{float64(d) / float64(time.Second)}},
+		{encoder: NanosDurationEncoder, elems: []interface{}{int64(d)}},
+	}
+	for i, tt := range tests {
+		enc := &tPrimitiveArrayEncoder{}
+		tt.encoder.zap()(d, enc)
+		assert.Equal(t, tt.elems, enc.elems, "%d: unexpected duration encoder elements", i)
+	}
+}
+
+func TestCallerEncoder(t *testing.T) {
+	caller := zapcore.EntryCaller{
+		Defined: true,
+		File:    "github.com/ironzhang/tlog/zaplog/config_test.go",
+		Line:    460,
+	}
+	tests := []struct {
+		encoder CallerEncoder
+		elems   []interface{}
+	}{
+		{encoder: -1, elems: []interface{}{caller.TrimmedPath()}},
+		{encoder: ShortCallerEncoder, elems: []interface{}{caller.TrimmedPath()}},
+		{encoder: FullCallerEncoder, elems: []interface{}{caller.String()}},
+	}
+	for i, tt := range tests {
+		enc := &tPrimitiveArrayEncoder{}
+		tt.encoder.zap()(caller, enc)
+		assert.Equal(t, tt.elems, enc.elems, "%d: unexpected caller encoder elements", i)
+	}
+}
+
+func TestNameEncoder(t *testing.T) {
+	name := "access"
+	tests := []struct {
+		encoder NameEncoder
+		elems   []interface{}
+	}{
+		{encoder: -1, elems: []interface{}{name}},
+		{encoder: FullNameEncoder, elems: []interface{}{name}},
+	}
+	for i, tt := range tests {
+		enc := &tPrimitiveArrayEncoder{}
+		tt.encoder.zap()(name, enc)
+		assert.Equal(t, tt.elems, enc.elems, "%d: unexpected name encoder elements", i)
 	}
 }
