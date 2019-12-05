@@ -13,20 +13,20 @@ loggers:
   - minLevel: debug
     maxLevel: debug
     urls:
-    - ./log/debug.log
+    - /tmp/log/debug.log
   - minLevel: info
     maxLevel: fatal
     urls:
-    - ./log/info.log
+    - /tmp/log/info.log
   - minLevel: warn
     maxLevel: fatal
     urls:
-    - ./log/warn.log
+    - /tmp/log/warn.log
   - minLevel: error
     maxLevel: fatal
     urls:
-    - ./log/error.log
+    - /tmp/log/error.log
   - minLevel: panic
     maxLevel: fatal
     urls:
-    - ./log/fatal.log
+    - /tmp/log/fatal.log

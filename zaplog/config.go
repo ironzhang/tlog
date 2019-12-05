@@ -491,27 +491,27 @@ func NewProductionConfig() Config {
 					{
 						MinLevel: iface.DEBUG,
 						MaxLevel: iface.DEBUG,
-						URLs:     []string{"./log/debug.log"},
+						URLs:     []string{"/tmp/log/debug.log"},
 					},
 					{
 						MinLevel: iface.INFO,
 						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/info.log"},
+						URLs:     []string{"/tmp/log/info.log"},
 					},
 					{
 						MinLevel: iface.WARN,
 						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/warn.log"},
+						URLs:     []string{"/tmp/log/warn.log"},
 					},
 					{
 						MinLevel: iface.ERROR,
 						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/error.log"},
+						URLs:     []string{"/tmp/log/error.log"},
 					},
 					{
 						MinLevel: iface.PANIC,
 						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/fatal.log"},
+						URLs:     []string{"/tmp/log/fatal.log"},
 					},
 				},
 			},
