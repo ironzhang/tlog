@@ -8,10 +8,12 @@ import (
 
 var stdConfig = Config{
 	Level: iface.DEBUG,
-	Cores: []CoreConfig{
+	Loggers: []LoggerConfig{
 		{
-			Name:     "Stderr",
-			Encoding: "console",
+			Name:            "",
+			DisableCaller:   false,
+			StacktraceLevel: DisableStacktrace,
+			Encoding:        "console",
 			Encoder: EncoderConfig{
 				TimeKey:        "T",
 				LevelKey:       "L",
@@ -24,17 +26,13 @@ var stdConfig = Config{
 				EncodeDuration: StringDurationEncoder,
 				EncodeCaller:   ShortCallerEncoder,
 			},
-			MinLevel: iface.DEBUG,
-			MaxLevel: iface.FATAL,
-			URLs:     []string{"stderr"},
-		},
-	},
-	Loggers: []LoggerConfig{
-		{
-			Name:            "",
-			DisableCaller:   false,
-			StacktraceLevel: DisableStacktrace,
-			Cores:           []string{"Stderr"},
+			Outputs: []OutputConfig{
+				{
+					MinLevel: iface.DEBUG,
+					MaxLevel: iface.FATAL,
+					URLs:     []string{"stderr"},
+				},
+			},
 		},
 	},
 }

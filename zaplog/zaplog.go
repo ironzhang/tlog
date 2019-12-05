@@ -28,9 +28,8 @@ type Logger struct {
 	level zap.AtomicLevel
 
 	iface.Logger
+	loggers map[string]*zlogger.Logger
 	closers []io.Closer
-	cores   map[string]zapcore.Core
-	loggers map[string]iface.Logger
 }
 
 func New(cfg Config, opts ...Option) (*Logger, error) {
@@ -47,15 +46,7 @@ func (p *Logger) init(cfg Config, opts []Option) (err error) {
 		apply(p)
 	}
 
-	p.closers = make([]io.Closer, 0, len(cfg.Cores))
-	p.cores = make(map[string]zapcore.Core)
-	for _, core := range cfg.Cores {
-		if err = p.openCore(core); err != nil {
-			return err
-		}
-	}
-
-	p.loggers = make(map[string]iface.Logger)
+	p.loggers = make(map[string]*zlogger.Logger)
 	for _, logger := range cfg.Loggers {
 		if err = p.openLogger(logger); err != nil {
 			return err
@@ -71,62 +62,31 @@ func (p *Logger) init(cfg Config, opts []Option) (err error) {
 	return nil
 }
 
-func (p *Logger) openCore(cfg CoreConfig) error {
-	if _, ok := p.cores[cfg.Name]; ok {
-		return fmt.Errorf("core %q is already opened", cfg.Name)
-	}
-
-	enc, err := newEncoder(cfg.Encoding, cfg.Encoder)
-	if err != nil {
-		return fmt.Errorf("new encoder: %w", err)
-	}
-
-	sink, err := newSinks(cfg.URLs)
-	if err != nil {
-		return fmt.Errorf("new sinks: %w", err)
-	}
-
-	enab := &levelEnabler{
-		min:   zbase.ZapLevel(cfg.MinLevel),
-		max:   zbase.ZapLevel(cfg.MaxLevel),
-		level: p.level,
-	}
-
-	p.closers = append(p.closers, sink)
-	p.cores[cfg.Name] = zapcore.NewCore(enc, sink, enab)
-
-	return nil
-}
-
 func (p *Logger) openLogger(cfg LoggerConfig) error {
 	if _, ok := p.loggers[cfg.Name]; ok {
 		return fmt.Errorf("logger %q is already opened", cfg.Name)
 	}
 
-	core, err := p.combineCore(cfg.Cores)
+	logger, closers, err := newLogger(p.level, p.hook, cfg)
 	if err != nil {
-		return fmt.Errorf("combine core: %w", err)
+		return fmt.Errorf("new logger %q: %w", cfg.Name, err)
 	}
 
-	opts := p.buildLoggerOptions(cfg)
-	p.loggers[cfg.Name] = zlogger.New(cfg.Name, core, p.hook, opts...)
-
+	p.loggers[cfg.Name] = logger
+	p.closers = append(p.closers, closers...)
 	return nil
 }
 
-func (p *Logger) combineCore(names []string) (zapcore.Core, error) {
-	cores := make([]zapcore.Core, 0, len(names))
-	for _, name := range names {
-		core, ok := p.cores[name]
-		if !ok {
-			return nil, fmt.Errorf("not found core %q", name)
-		}
-		cores = append(cores, core)
+func newLogger(level zap.AtomicLevel, hook ContextHook, cfg LoggerConfig) (*zlogger.Logger, []io.Closer, error) {
+	opts := buildLoggerOptions(cfg)
+	core, closers, err := buildLoggerCore(level, cfg)
+	if err != nil {
+		return nil, nil, err
 	}
-	return zapcore.NewTee(cores...), nil
+	return zlogger.New(cfg.Name, core, hook, opts...), closers, nil
 }
 
-func (p *Logger) buildLoggerOptions(cfg LoggerConfig) []zap.Option {
+func buildLoggerOptions(cfg LoggerConfig) []zap.Option {
 	var opts []zap.Option
 
 	if !cfg.DisableCaller {
@@ -143,6 +103,38 @@ func (p *Logger) buildLoggerOptions(cfg LoggerConfig) []zap.Option {
 	return opts
 }
 
+func buildLoggerCore(level zap.AtomicLevel, cfg LoggerConfig) (zapcore.Core, []io.Closer, error) {
+	enc, err := newEncoder(cfg.Encoding, cfg.Encoder)
+	if err != nil {
+		return nil, nil, fmt.Errorf("new encoder: %w", err)
+	}
+
+	cores := make([]zapcore.Core, 0, len(cfg.Outputs))
+	closers := make([]io.Closer, 0, len(cfg.Outputs))
+	closef := func() {
+		for _, c := range closers {
+			c.Close()
+		}
+	}
+
+	for _, out := range cfg.Outputs {
+		sink, err := newSinks(out.URLs)
+		if err != nil {
+			closef()
+			return nil, nil, fmt.Errorf("new sinks: %w", err)
+		}
+		closers = append(closers, sink)
+
+		enab := &levelEnabler{
+			min:   zbase.ZapLevel(out.MinLevel),
+			max:   zbase.ZapLevel(out.MaxLevel),
+			level: level,
+		}
+		cores = append(cores, zapcore.NewCore(enc.Clone(), sink, enab))
+	}
+	return zapcore.NewTee(cores...), closers, nil
+}
+
 func (p *Logger) Close() (err error) {
 	err = multierr.Append(err, p.Sync())
 	for _, c := range p.closers {
@@ -152,8 +144,8 @@ func (p *Logger) Close() (err error) {
 }
 
 func (p *Logger) Sync() (err error) {
-	for _, core := range p.cores {
-		err = multierr.Append(err, core.Sync())
+	for _, logger := range p.loggers {
+		err = multierr.Append(err, logger.Sync())
 	}
 	return err
 }

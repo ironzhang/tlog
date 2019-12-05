@@ -69,6 +69,10 @@ func (p *Logger) WithContext(ctx context.Context) iface.Logger {
 	return c
 }
 
+func (p *Logger) Sync() error {
+	return p.base.Sync()
+}
+
 func (p *Logger) Debug(args ...interface{}) {
 	p.Print(1, iface.DEBUG, args...)
 }

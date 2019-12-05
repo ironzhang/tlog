@@ -1,41 +1,28 @@
-cores:
-- name: Debug
-  minLevel: debug
-  maxLevel: debug
-  urls:
-  - ./log/debug.log
-- name: Info
-  minLevel: info
-  maxLevel: fatal
-  urls:
-  - ./log/info.log
-- name: Warn
-  minLevel: warn
-  maxLevel: fatal
-  urls:
-  - ./log/warn.log
-- name: Error
-  minLevel: error
-  maxLevel: fatal
-  urls:
-  - ./log/error.log
-- name: Fatal
-  minLevel: panic
-  maxLevel: fatal
-  urls:
-  - ./log/fatal.log
-- name: Access
-  minLevel: debug
-  maxLevel: fatal
-  urls:
-  - ./log/access.log
 loggers:
-- cores:
-  - Debug
-  - Info
-  - Warn
-  - Error
-  - Fatal
+- outputs:
+  - minLevel: debug
+    maxLevel: debug
+    urls:
+    - ./log/debug.log
+  - minLevel: info
+    maxLevel: fatal
+    urls:
+    - ./log/info.log
+  - minLevel: warn
+    maxLevel: fatal
+    urls:
+    - ./log/warn.log
+  - minLevel: error
+    maxLevel: fatal
+    urls:
+    - ./log/error.log
+  - minLevel: panic
+    maxLevel: fatal
+    urls:
+    - ./log/fatal.log
 - name: access
-  cores:
-  - Access
+  outputs:
+  - minLevel: debug
+    maxLevel: fatal
+    urls:
+    - ./log/access.log

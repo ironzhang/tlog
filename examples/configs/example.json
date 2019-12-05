@@ -1,74 +1,56 @@
 {
-	"cores": [
-		{
-			"name": "Debug",
-			"encoder": {},
-			"minLevel": "debug",
-			"maxLevel": "debug",
-			"urls": [
-				"./log/debug.log"
-			]
-		},
-		{
-			"name": "Info",
-			"encoder": {},
-			"minLevel": "info",
-			"maxLevel": "fatal",
-			"urls": [
-				"./log/info.log"
-			]
-		},
-		{
-			"name": "Warn",
-			"encoder": {},
-			"minLevel": "warn",
-			"maxLevel": "fatal",
-			"urls": [
-				"./log/warn.log"
-			]
-		},
-		{
-			"name": "Error",
-			"encoder": {},
-			"minLevel": "error",
-			"maxLevel": "fatal",
-			"urls": [
-				"./log/error.log"
-			]
-		},
-		{
-			"name": "Fatal",
-			"encoder": {},
-			"minLevel": "panic",
-			"maxLevel": "fatal",
-			"urls": [
-				"./log/fatal.log"
-			]
-		},
-		{
-			"name": "Access",
-			"encoder": {},
-			"minLevel": "debug",
-			"maxLevel": "fatal",
-			"urls": [
-				"./log/access.log"
-			]
-		}
-	],
 	"loggers": [
 		{
-			"cores": [
-				"Debug",
-				"Info",
-				"Warn",
-				"Error",
-				"Fatal"
+			"encoder": {},
+			"outputs": [
+				{
+					"minLevel": "debug",
+					"maxLevel": "debug",
+					"urls": [
+						"./log/debug.log"
+					]
+				},
+				{
+					"minLevel": "info",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/info.log"
+					]
+				},
+				{
+					"minLevel": "warn",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/warn.log"
+					]
+				},
+				{
+					"minLevel": "error",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/error.log"
+					]
+				},
+				{
+					"minLevel": "panic",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/fatal.log"
+					]
+				}
 			]
 		},
 		{
 			"name": "access",
-			"cores": [
-				"Access"
+			"encoder": {},
+			"outputs": [
+				{
+					"minLevel": "debug",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/access.log"
+					]
+				}
 			]
 		}
 	]

@@ -14,10 +14,13 @@ import (
 var configs = []zaplog.Config{
 	{
 		Level: iface.DEBUG,
-		Cores: []zaplog.CoreConfig{
+		Loggers: []zaplog.LoggerConfig{
 			{
-				Name:     "Stderr",
-				Encoding: "console",
+
+				Name:            "",
+				DisableCaller:   false,
+				StacktraceLevel: zaplog.DisableStacktrace,
+				Encoding:        "console",
 				Encoder: zaplog.EncoderConfig{
 					MessageKey:     "M",
 					LevelKey:       "L",
@@ -31,84 +34,64 @@ var configs = []zaplog.Config{
 					EncodeCaller:   zaplog.ShortCallerEncoder,
 					EncodeName:     zaplog.FullNameEncoder,
 				},
-				MinLevel: iface.DEBUG,
-				MaxLevel: iface.FATAL,
-				URLs:     []string{"stderr"},
-			},
-		},
-		Loggers: []zaplog.LoggerConfig{
-			{
-				Name:            "",
-				DisableCaller:   false,
-				StacktraceLevel: zaplog.DisableStacktrace,
-				Cores:           []string{"Stderr"},
+				Outputs: []zaplog.OutputConfig{
+					{
+						MinLevel: iface.DEBUG,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"stderr"},
+					},
+				},
 			},
 		},
 	},
 	{
 		Level: iface.INFO,
-		Cores: []zaplog.CoreConfig{
-			{
-				Name:     "Debug",
-				Encoding: "",
-				Encoder:  zaplog.EncoderConfig{},
-				MinLevel: iface.DEBUG,
-				MaxLevel: iface.DEBUG,
-				URLs:     []string{"./log/debug.log"},
-			},
-			{
-				Name:     "Info",
-				Encoding: "",
-				Encoder:  zaplog.EncoderConfig{},
-				MinLevel: iface.INFO,
-				MaxLevel: iface.FATAL,
-				URLs:     []string{"./log/info.log"},
-			},
-			{
-				Name:     "Warn",
-				Encoding: "",
-				Encoder:  zaplog.EncoderConfig{},
-				MinLevel: iface.WARN,
-				MaxLevel: iface.FATAL,
-				URLs:     []string{"./log/warn.log"},
-			},
-			{
-				Name:     "Error",
-				Encoding: "",
-				Encoder:  zaplog.EncoderConfig{},
-				MinLevel: iface.ERROR,
-				MaxLevel: iface.FATAL,
-				URLs:     []string{"./log/error.log"},
-			},
-			{
-				Name:     "Fatal",
-				Encoding: "",
-				Encoder:  zaplog.EncoderConfig{},
-				MinLevel: iface.PANIC,
-				MaxLevel: iface.FATAL,
-				URLs:     []string{"./log/fatal.log"},
-			},
-			{
-				Name:     "Access",
-				Encoding: "",
-				Encoder:  zaplog.EncoderConfig{},
-				MinLevel: iface.DEBUG,
-				MaxLevel: iface.FATAL,
-				URLs:     []string{"./log/access.log"},
-			},
-		},
 		Loggers: []zaplog.LoggerConfig{
 			{
 				Name:            "",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.DisableStacktrace,
-				Cores:           []string{"Debug", "Info", "Warn", "Error", "Fatal"},
+				Encoding:        "",
+				Encoder:         zaplog.EncoderConfig{},
+				Outputs: []zaplog.OutputConfig{
+					{
+						MinLevel: iface.DEBUG,
+						MaxLevel: iface.DEBUG,
+						URLs:     []string{"./log/debug.log"},
+					},
+					{
+						MinLevel: iface.INFO,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/info.log"},
+					},
+					{
+						MinLevel: iface.WARN,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/warn.log"},
+					},
+					{
+						MinLevel: iface.ERROR,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/error.log"},
+					},
+					{
+						MinLevel: iface.PANIC,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/fatal.log"},
+					},
+				},
 			},
 			{
 				Name:            "access",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.DisableStacktrace,
-				Cores:           []string{"Access"},
+				Outputs: []zaplog.OutputConfig{
+					{
+						MinLevel: iface.DEBUG,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/access.log"},
+					},
+				},
 			},
 		},
 	},

@@ -398,78 +398,62 @@ type EncoderConfig struct {
 	EncodeName     NameEncoder     `json:"nameEncoder,omitempty" yaml:"nameEncoder,omitempty"`
 }
 
-type CoreConfig struct {
-	Name     string        `json:"name,omitempty" yaml:"name,omitempty"`
-	Encoding string        `json:"encoding,omitempty" yaml:"encoding,omitempty"`
-	Encoder  EncoderConfig `json:"encoder,omitempty" yaml:"encoder,omitempty"`
-	MinLevel iface.Level   `json:"minLevel" yaml:"minLevel"`
-	MaxLevel iface.Level   `json:"maxLevel" yaml:"maxLevel"`
-	URLs     []string      `json:"urls,omitempty" yaml:"urls,omitempty"`
+type OutputConfig struct {
+	MinLevel iface.Level `json:"minLevel" yaml:"minLevel"`
+	MaxLevel iface.Level `json:"maxLevel" yaml:"maxLevel"`
+	URLs     []string    `json:"urls,omitempty" yaml:"urls,omitempty"`
 }
 
 type LoggerConfig struct {
 	Name            string          `json:"name,omitempty" yaml:"name,omitempty"`
 	DisableCaller   bool            `json:"disableCaller,omitempty" yaml:"disableCaller,omitempty"`
 	StacktraceLevel StacktraceLevel `json:"stacktraceLevel,omitempty" yaml:"stacktraceLevel,omitempty"`
-	Cores           []string        `json:"cores,omitempty" yaml:"cores,omitempty"`
+	Encoding        string          `json:"encoding,omitempty" yaml:"encoding,omitempty"`
+	Encoder         EncoderConfig   `json:"encoder,omitempty" yaml:"encoder,omitempty"`
+	Outputs         []OutputConfig  `json:"outputs,omitempty" yaml:"outputs,omitempty"`
 }
 
 type Config struct {
 	Level   iface.Level    `json:"level,omitempty" yaml:"level,omitempty"`
-	Cores   []CoreConfig   `json:"cores,omitempty" yaml:"cores,omitempty"`
 	Loggers []LoggerConfig `json:"loggers,omitempty" yaml:"loggers,omitempty"`
 }
 
 var ExampleConfig = Config{
 	Level: iface.INFO,
-	Cores: []CoreConfig{
-		{
-			Name:     "Debug",
-			Encoding: "console",
-			Encoder:  EncoderConfig{},
-			MinLevel: iface.DEBUG,
-			MaxLevel: iface.DEBUG,
-			URLs:     []string{"./log/debug.log"},
-		},
-		{
-			Name:     "Info",
-			Encoding: "console",
-			Encoder:  EncoderConfig{},
-			MinLevel: iface.INFO,
-			MaxLevel: iface.FATAL,
-			URLs:     []string{"./log/info.log"},
-		},
-		{
-			Name:     "Warn",
-			Encoding: "console",
-			Encoder:  EncoderConfig{},
-			MinLevel: iface.WARN,
-			MaxLevel: iface.FATAL,
-			URLs:     []string{"./log/warn.log"},
-		},
-		{
-			Name:     "Error",
-			Encoding: "console",
-			Encoder:  EncoderConfig{},
-			MinLevel: iface.ERROR,
-			MaxLevel: iface.FATAL,
-			URLs:     []string{"./log/error.log"},
-		},
-		{
-			Name:     "Fatal",
-			Encoding: "console",
-			Encoder:  EncoderConfig{},
-			MinLevel: iface.PANIC,
-			MaxLevel: iface.FATAL,
-			URLs:     []string{"./log/fatal.log"},
-		},
-	},
 	Loggers: []LoggerConfig{
 		{
 			Name:            "",
 			DisableCaller:   false,
 			StacktraceLevel: DisableStacktrace,
-			Cores:           []string{"Debug", "Info", "Warn", "Error", "Fatal"},
+			Encoding:        "console",
+			Encoder:         EncoderConfig{},
+			Outputs: []OutputConfig{
+				{
+					MinLevel: iface.DEBUG,
+					MaxLevel: iface.DEBUG,
+					URLs:     []string{"./log/debug.log"},
+				},
+				{
+					MinLevel: iface.INFO,
+					MaxLevel: iface.FATAL,
+					URLs:     []string{"./log/info.log"},
+				},
+				{
+					MinLevel: iface.WARN,
+					MaxLevel: iface.FATAL,
+					URLs:     []string{"./log/warn.log"},
+				},
+				{
+					MinLevel: iface.ERROR,
+					MaxLevel: iface.FATAL,
+					URLs:     []string{"./log/error.log"},
+				},
+				{
+					MinLevel: iface.PANIC,
+					MaxLevel: iface.FATAL,
+					URLs:     []string{"./log/fatal.log"},
+				},
+			},
 		},
 	},
 }

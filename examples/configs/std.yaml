@@ -1,7 +1,6 @@
 level: debug
-cores:
-- name: Stderr
-  encoding: console
+loggers:
+- encoding: console
   encoder:
     messageKey: M
     levelKey: L
@@ -10,10 +9,8 @@ cores:
     callerKey: C
     stacktraceKey: S
     levelEncoder: capitalColor
-  minLevel: debug
-  maxLevel: fatal
-  urls:
-  - stderr
-loggers:
-- cores:
-  - Stderr
+  outputs:
+  - minLevel: debug
+    maxLevel: fatal
+    urls:
+    - stderr
