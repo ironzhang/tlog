@@ -423,42 +423,98 @@ type Config struct {
 	Loggers []LoggerConfig `json:"loggers,omitempty" yaml:"loggers,omitempty"`
 }
 
-var ExampleConfig = Config{
-	Level: iface.INFO,
-	Loggers: []LoggerConfig{
-		{
-			Name:            "",
-			DisableCaller:   false,
-			StacktraceLevel: DisableStacktrace,
-			Encoding:        "console",
-			Encoder:         EncoderConfig{},
-			Outputs: []OutputConfig{
-				{
-					MinLevel: iface.DEBUG,
-					MaxLevel: iface.DEBUG,
-					URLs:     []string{"./log/debug.log"},
-				},
-				{
-					MinLevel: iface.INFO,
-					MaxLevel: iface.FATAL,
-					URLs:     []string{"./log/info.log"},
-				},
-				{
-					MinLevel: iface.WARN,
-					MaxLevel: iface.FATAL,
-					URLs:     []string{"./log/warn.log"},
-				},
-				{
-					MinLevel: iface.ERROR,
-					MaxLevel: iface.FATAL,
-					URLs:     []string{"./log/error.log"},
-				},
-				{
-					MinLevel: iface.PANIC,
-					MaxLevel: iface.FATAL,
-					URLs:     []string{"./log/fatal.log"},
+func NewConsoleEncoderConfig() EncoderConfig {
+	return EncoderConfig{
+		MessageKey:     "M",
+		LevelKey:       "L",
+		TimeKey:        "T",
+		NameKey:        "N",
+		CallerKey:      "C",
+		StacktraceKey:  "S",
+		EncodeLevel:    CapitalLevelEncoder,
+		EncodeTime:     ISO8601TimeEncoder,
+		EncodeDuration: StringDurationEncoder,
+		EncodeCaller:   ShortCallerEncoder,
+		EncodeName:     FullNameEncoder,
+	}
+}
+
+func NewJSONEncoderConfig() EncoderConfig {
+	return EncoderConfig{
+		MessageKey:     "msg",
+		LevelKey:       "level",
+		TimeKey:        "ts",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		StacktraceKey:  "stacktrace",
+		EncodeLevel:    LowercaseLevelEncoder,
+		EncodeTime:     EpochTimeEncoder,
+		EncodeDuration: StringDurationEncoder,
+		EncodeCaller:   ShortCallerEncoder,
+		EncodeName:     FullNameEncoder,
+	}
+}
+
+func NewDevelopmentConfig() Config {
+	return Config{
+		Level: iface.DEBUG,
+		Loggers: []LoggerConfig{
+			{
+				Name:            "",
+				DisableCaller:   false,
+				StacktraceLevel: DisableStacktrace,
+				Encoding:        "console",
+				Encoder:         NewConsoleEncoderConfig(),
+				Outputs: []OutputConfig{
+					{
+						MinLevel: iface.DEBUG,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"stderr"},
+					},
 				},
 			},
 		},
-	},
+	}
+}
+
+func NewProductionConfig() Config {
+	return Config{
+		Level: iface.INFO,
+		Loggers: []LoggerConfig{
+			{
+				Name:            "",
+				DisableCaller:   false,
+				StacktraceLevel: PanicStacktrace,
+				Encoding:        "json",
+				Encoder:         NewJSONEncoderConfig(),
+				Outputs: []OutputConfig{
+					{
+						MinLevel: iface.DEBUG,
+						MaxLevel: iface.DEBUG,
+						URLs:     []string{"./log/debug.log"},
+					},
+					{
+						MinLevel: iface.INFO,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/info.log"},
+					},
+					{
+						MinLevel: iface.WARN,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/warn.log"},
+					},
+					{
+						MinLevel: iface.ERROR,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/error.log"},
+					},
+					{
+						MinLevel: iface.PANIC,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/fatal.log"},
+					},
+				},
+			},
+		},
+	}
 }
