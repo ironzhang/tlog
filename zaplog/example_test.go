@@ -16,7 +16,7 @@ func ExampleStdLogger() {
 	// output:
 }
 
-func ExampleProductionLogger() {
+func ExampleNew() {
 	logger, err := New(NewProductionConfig())
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "new: %v", err)
