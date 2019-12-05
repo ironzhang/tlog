@@ -52,7 +52,13 @@ var configs = []zaplog.Config{
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.PanicStacktrace,
 				Encoding:        "",
-				Encoder:         zaplog.EncoderConfig{},
+				Encoder: zaplog.EncoderConfig{
+					MessageKey: "M",
+					LevelKey:   "L",
+					TimeKey:    "T",
+					NameKey:    "N",
+					CallerKey:  "C",
+				},
 				Outputs: []zaplog.OutputConfig{
 					{
 						MinLevel: iface.DEBUG,
@@ -85,6 +91,13 @@ var configs = []zaplog.Config{
 				Name:            "access",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.PanicStacktrace,
+				Encoder: zaplog.EncoderConfig{
+					MessageKey: "M",
+					LevelKey:   "L",
+					TimeKey:    "T",
+					NameKey:    "N",
+					CallerKey:  "C",
+				},
 				Outputs: []zaplog.OutputConfig{
 					{
 						MinLevel: iface.DEBUG,

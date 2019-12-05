@@ -1,5 +1,11 @@
 loggers:
-- outputs:
+- encoder:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: "N"
+    callerKey: C
+  outputs:
   - minLevel: debug
     maxLevel: debug
     urls:
@@ -21,6 +27,12 @@ loggers:
     urls:
     - ./log/fatal.log
 - name: access
+  encoder:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: "N"
+    callerKey: C
   outputs:
   - minLevel: debug
     maxLevel: fatal

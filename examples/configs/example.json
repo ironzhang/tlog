@@ -1,7 +1,13 @@
 {
 	"loggers": [
 		{
-			"encoder": {},
+			"encoder": {
+				"messageKey": "M",
+				"levelKey": "L",
+				"timeKey": "T",
+				"nameKey": "N",
+				"callerKey": "C"
+			},
 			"outputs": [
 				{
 					"minLevel": "debug",
@@ -42,7 +48,13 @@
 		},
 		{
 			"name": "access",
-			"encoder": {},
+			"encoder": {
+				"messageKey": "M",
+				"levelKey": "L",
+				"timeKey": "T",
+				"nameKey": "N",
+				"callerKey": "C"
+			},
 			"outputs": [
 				{
 					"minLevel": "debug",

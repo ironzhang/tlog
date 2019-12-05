@@ -24,18 +24,6 @@ func newEncoder(name string, cfg EncoderConfig) (zapcore.Encoder, error) {
 	if enc.MessageKey == "" {
 		enc.MessageKey = "M"
 	}
-	if enc.LevelKey == "" {
-		enc.LevelKey = "L"
-	}
-	if enc.TimeKey == "" {
-		enc.TimeKey = "T"
-	}
-	if enc.NameKey == "" {
-		enc.NameKey = "N"
-	}
-	if enc.CallerKey == "" {
-		enc.CallerKey = "C"
-	}
 	if enc.StacktraceKey == "" {
 		enc.StacktraceKey = "S"
 	}

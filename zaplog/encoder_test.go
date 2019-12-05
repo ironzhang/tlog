@@ -46,7 +46,14 @@ func TestEncoder(t *testing.T) {
 		console string
 	}{
 		{
-			cfg: EncoderConfig{},
+			cfg: EncoderConfig{
+				MessageKey:    "M",
+				LevelKey:      "L",
+				TimeKey:       "T",
+				NameKey:       "N",
+				CallerKey:     "C",
+				StacktraceKey: "S",
+			},
 			json: `{"L":"INFO","T":"1970-01-01T00:00:00.000Z","C":"zaplog/encoder_test.go:16",` +
 				`"M":"hello, world","k1":"v1"}` + "\n",
 			console: "1970-01-01T00:00:00.000Z\tINFO\tzaplog/encoder_test.go:16\thello, world\t" +
@@ -54,6 +61,12 @@ func TestEncoder(t *testing.T) {
 		},
 		{
 			cfg: EncoderConfig{
+				MessageKey:     "M",
+				LevelKey:       "L",
+				TimeKey:        "T",
+				NameKey:        "N",
+				CallerKey:      "C",
+				StacktraceKey:  "S",
 				EncodeLevel:    LowercaseLevelEncoder,
 				EncodeTime:     EpochTimeEncoder,
 				EncodeDuration: SecondsDurationEncoder,
