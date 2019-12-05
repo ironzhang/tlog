@@ -50,7 +50,7 @@ var configs = []zaplog.Config{
 			{
 				Name:            "",
 				DisableCaller:   false,
-				StacktraceLevel: zaplog.DisableStacktrace,
+				StacktraceLevel: zaplog.PanicStacktrace,
 				Encoding:        "",
 				Encoder:         zaplog.EncoderConfig{},
 				Outputs: []zaplog.OutputConfig{
@@ -84,7 +84,7 @@ var configs = []zaplog.Config{
 			{
 				Name:            "access",
 				DisableCaller:   false,
-				StacktraceLevel: zaplog.DisableStacktrace,
+				StacktraceLevel: zaplog.PanicStacktrace,
 				Outputs: []zaplog.OutputConfig{
 					{
 						MinLevel: iface.DEBUG,

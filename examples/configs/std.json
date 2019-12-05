@@ -2,6 +2,7 @@
 	"level": "debug",
 	"loggers": [
 		{
+			"stacktraceLevel": "disable",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "M",

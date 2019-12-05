@@ -1,6 +1,7 @@
 level: debug
 loggers:
-- encoding: console
+- stacktraceLevel: disable
+  encoding: console
   encoder:
     messageKey: M
     levelKey: L
