@@ -2,19 +2,29 @@ package tlog_test
 
 import (
 	"context"
-	"testing"
 
 	"github.com/ironzhang/tlog"
 	"github.com/ironzhang/tlog/zaplog"
 )
 
-func TestLog(t *testing.T) {
+func ExampleLog() {
 	zaplog.StdContextHook = func(ctx context.Context) []interface{} {
 		return []interface{}{"TraceID", "123456"}
 	}
 
-	tlog.Debug("hello")
-	tlog.Info("hello")
-	tlog.WithArgs("function", "TestLog").Warn("hello")
-	tlog.WithContext(context.Background()).WithArgs("function", "TestLog").Error("hello")
+	tlog.Debug("debug")
+	tlog.Info("info")
+	tlog.Warn("warn")
+	tlog.Error("error")
+	func() {
+		defer func() {
+			recover()
+		}()
+		tlog.Panic("panic")
+	}()
+
+	tlog.WithArgs("function", "TestLog").Info("hello")
+	tlog.WithContext(context.Background()).WithArgs("function", "TestLog").Info("hello")
+
+	// output:
 }
