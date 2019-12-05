@@ -1,6 +1,6 @@
 package zaplog
 
-func Example_StdLogger() {
+func ExampleStdLogger() {
 	logger := StdLogger()
 	logger.Debug("debug")
 	logger.Info("info")
