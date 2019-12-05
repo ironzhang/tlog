@@ -59,12 +59,13 @@ func TestStacktraceLevelUnmarshal(t *testing.T) {
 	}{
 		{s: "unknown", err: "unrecognized stacktrace level"},
 		{s: "StacktraceLevel(-1)", err: "unrecognized stacktrace level"},
-		{s: "", l: DisableStacktrace},
-		{s: "disable", l: DisableStacktrace},
-		{s: "warn", l: WarnStacktrace},
+		{s: "", l: PanicStacktrace},
+		{s: "panic", l: PanicStacktrace},
 		{s: "error", l: ErrorStacktrace},
-		{s: "ERROR", l: ErrorStacktrace},
-		{s: "Error", l: ErrorStacktrace},
+		{s: "warn", l: WarnStacktrace},
+		{s: "disable", l: DisableStacktrace},
+		{s: "DISABLE", l: DisableStacktrace},
+		{s: "dISABLE", l: DisableStacktrace},
 	}
 	for i, tt := range tests {
 		var l StacktraceLevel

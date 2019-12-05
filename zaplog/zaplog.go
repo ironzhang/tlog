@@ -94,10 +94,12 @@ func buildLoggerOptions(cfg LoggerConfig) []zap.Option {
 	}
 
 	switch cfg.StacktraceLevel {
-	case WarnStacktrace:
-		opts = append(opts, zap.AddStacktrace(zapcore.WarnLevel))
+	case PanicStacktrace:
+		opts = append(opts, zap.AddStacktrace(zapcore.DPanicLevel))
 	case ErrorStacktrace:
 		opts = append(opts, zap.AddStacktrace(zapcore.ErrorLevel))
+	case WarnStacktrace:
+		opts = append(opts, zap.AddStacktrace(zapcore.WarnLevel))
 	}
 
 	return opts

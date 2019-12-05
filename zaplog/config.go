@@ -21,19 +21,22 @@ var (
 type StacktraceLevel int8
 
 const (
-	DisableStacktrace StacktraceLevel = iota
-	WarnStacktrace
+	PanicStacktrace StacktraceLevel = iota
 	ErrorStacktrace
+	WarnStacktrace
+	DisableStacktrace
 )
 
 func (l StacktraceLevel) String() string {
 	switch l {
-	case DisableStacktrace:
-		return "disable"
-	case WarnStacktrace:
-		return "warn"
+	case PanicStacktrace:
+		return "panic"
 	case ErrorStacktrace:
 		return "error"
+	case WarnStacktrace:
+		return "warn"
+	case DisableStacktrace:
+		return "disable"
 	default:
 		return fmt.Sprintf("StacktraceLevel(%d)", l)
 	}
@@ -55,12 +58,14 @@ func (l *StacktraceLevel) UnmarshalText(text []byte) error {
 
 func (l *StacktraceLevel) unmarshalText(text []byte) bool {
 	switch string(text) {
-	case "disable", "DISABLE", "":
-		*l = DisableStacktrace
-	case "warn", "WARN":
-		*l = WarnStacktrace
+	case "panic", "PANIC", "":
+		*l = PanicStacktrace
 	case "error", "ERROR":
 		*l = ErrorStacktrace
+	case "warn", "WARN":
+		*l = WarnStacktrace
+	case "disable", "DISABLE":
+		*l = DisableStacktrace
 	default:
 		return false
 	}
