@@ -1,0 +1,52 @@
+{
+	"loggers": [
+		{
+			"encoding": "json",
+			"encoder": {
+				"messageKey": "msg",
+				"levelKey": "level",
+				"timeKey": "ts",
+				"nameKey": "logger",
+				"callerKey": "caller",
+				"stacktraceKey": "stacktrace"
+			},
+			"outputs": [
+				{
+					"minLevel": "debug",
+					"maxLevel": "debug",
+					"urls": [
+						"./log/debug.log"
+					]
+				},
+				{
+					"minLevel": "info",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/info.log"
+					]
+				},
+				{
+					"minLevel": "warn",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/warn.log"
+					]
+				},
+				{
+					"minLevel": "error",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/error.log"
+					]
+				},
+				{
+					"minLevel": "panic",
+					"maxLevel": "fatal",
+					"urls": [
+						"./log/fatal.log"
+					]
+				}
+			]
+		}
+	]
+}

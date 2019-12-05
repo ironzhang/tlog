@@ -108,6 +108,52 @@ var configs = []zaplog.Config{
 			},
 		},
 	},
+	{
+		Level: iface.INFO,
+		Loggers: []zaplog.LoggerConfig{
+			{
+				Name:            "",
+				DisableCaller:   false,
+				StacktraceLevel: zaplog.PanicStacktrace,
+				Encoding:        "json",
+				Encoder: zaplog.EncoderConfig{
+					MessageKey:    "msg",
+					LevelKey:      "level",
+					TimeKey:       "ts",
+					NameKey:       "logger",
+					CallerKey:     "caller",
+					StacktraceKey: "stacktrace",
+				},
+				Outputs: []zaplog.OutputConfig{
+					{
+						MinLevel: iface.DEBUG,
+						MaxLevel: iface.DEBUG,
+						URLs:     []string{"./log/debug.log"},
+					},
+					{
+						MinLevel: iface.INFO,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/info.log"},
+					},
+					{
+						MinLevel: iface.WARN,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/warn.log"},
+					},
+					{
+						MinLevel: iface.ERROR,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/error.log"},
+					},
+					{
+						MinLevel: iface.PANIC,
+						MaxLevel: iface.FATAL,
+						URLs:     []string{"./log/fatal.log"},
+					},
+				},
+			},
+		},
+	},
 }
 
 type MarshalFunc func(v interface{}) ([]byte, error)
@@ -158,14 +204,24 @@ func main() {
 			config:  configs[0],
 		},
 		{
-			file:    "./example.json",
+			file:    "./console.json",
 			marshal: MarshalJSON,
 			config:  configs[1],
 		},
 		{
-			file:    "./example.yaml",
+			file:    "./console.yaml",
 			marshal: yaml.Marshal,
 			config:  configs[1],
+		},
+		{
+			file:    "./json.json",
+			marshal: MarshalJSON,
+			config:  configs[2],
+		},
+		{
+			file:    "./json.yaml",
+			marshal: yaml.Marshal,
+			config:  configs[2],
 		},
 	}
 
