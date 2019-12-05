@@ -10,8 +10,7 @@
 				"timeKey": "T",
 				"nameKey": "N",
 				"callerKey": "C",
-				"stacktraceKey": "S",
-				"levelEncoder": "capitalColor"
+				"stacktraceKey": "S"
 			},
 			"outputs": [
 				{

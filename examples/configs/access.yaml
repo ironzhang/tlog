@@ -1,15 +1,14 @@
 loggers:
-- encoding: json
-  encoder:
-    messageKey: msg
-    levelKey: level
-    timeKey: ts
-    nameKey: logger
-    callerKey: caller
-    stacktraceKey: stacktrace
+- encoder:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: "N"
+    callerKey: C
+    stacktraceKey: S
   outputs:
   - minLevel: debug
-    maxLevel: debug
+    maxLevel: fatal
     urls:
     - ./log/debug.log
   - minLevel: info
@@ -28,3 +27,16 @@ loggers:
     maxLevel: fatal
     urls:
     - ./log/fatal.log
+- name: access
+  encoder:
+    messageKey: M
+    levelKey: L
+    timeKey: T
+    nameKey: "N"
+    callerKey: C
+    stacktraceKey: S
+  outputs:
+  - minLevel: debug
+    maxLevel: fatal
+    urls:
+    - ./log/access.log

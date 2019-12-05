@@ -11,40 +11,8 @@ import (
 	"github.com/ironzhang/tlog/zaplog"
 )
 
-var configs = []zaplog.Config{
-	{
-		Level: iface.DEBUG,
-		Loggers: []zaplog.LoggerConfig{
-			{
-
-				Name:            "",
-				DisableCaller:   false,
-				StacktraceLevel: zaplog.DisableStacktrace,
-				Encoding:        "console",
-				Encoder: zaplog.EncoderConfig{
-					MessageKey:     "M",
-					LevelKey:       "L",
-					TimeKey:        "T",
-					NameKey:        "N",
-					CallerKey:      "C",
-					StacktraceKey:  "S",
-					EncodeLevel:    zaplog.CapitalColorLevelEncoder,
-					EncodeTime:     zaplog.ISO8601TimeEncoder,
-					EncodeDuration: zaplog.StringDurationEncoder,
-					EncodeCaller:   zaplog.ShortCallerEncoder,
-					EncodeName:     zaplog.FullNameEncoder,
-				},
-				Outputs: []zaplog.OutputConfig{
-					{
-						MinLevel: iface.DEBUG,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"stderr"},
-					},
-				},
-			},
-		},
-	},
-	{
+func NewAccessLoggerConfig() zaplog.Config {
+	return zaplog.Config{
 		Level: iface.INFO,
 		Loggers: []zaplog.LoggerConfig{
 			{
@@ -52,111 +20,40 @@ var configs = []zaplog.Config{
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.PanicStacktrace,
 				Encoding:        "",
-				Encoder: zaplog.EncoderConfig{
-					MessageKey: "M",
-					LevelKey:   "L",
-					TimeKey:    "T",
-					NameKey:    "N",
-					CallerKey:  "C",
-				},
+				Encoder:         zaplog.NewConsoleEncoderConfig(),
 				Outputs: []zaplog.OutputConfig{
-					{
-						MinLevel: iface.DEBUG,
-						MaxLevel: iface.DEBUG,
-						URLs:     []string{"./log/debug.log"},
-					},
-					{
-						MinLevel: iface.INFO,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/info.log"},
-					},
-					{
-						MinLevel: iface.WARN,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/warn.log"},
-					},
-					{
-						MinLevel: iface.ERROR,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/error.log"},
-					},
-					{
-						MinLevel: iface.PANIC,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/fatal.log"},
-					},
+					{MinLevel: iface.DEBUG, MaxLevel: iface.FATAL, URLs: []string{"./log/debug.log"}},
+					{MinLevel: iface.INFO, MaxLevel: iface.FATAL, URLs: []string{"./log/info.log"}},
+					{MinLevel: iface.WARN, MaxLevel: iface.FATAL, URLs: []string{"./log/warn.log"}},
+					{MinLevel: iface.ERROR, MaxLevel: iface.FATAL, URLs: []string{"./log/error.log"}},
+					{MinLevel: iface.PANIC, MaxLevel: iface.FATAL, URLs: []string{"./log/fatal.log"}},
 				},
 			},
 			{
 				Name:            "access",
 				DisableCaller:   false,
 				StacktraceLevel: zaplog.PanicStacktrace,
-				Encoder: zaplog.EncoderConfig{
-					MessageKey: "M",
-					LevelKey:   "L",
-					TimeKey:    "T",
-					NameKey:    "N",
-					CallerKey:  "C",
-				},
+				Encoding:        "",
+				Encoder:         zaplog.NewConsoleEncoderConfig(),
 				Outputs: []zaplog.OutputConfig{
-					{
-						MinLevel: iface.DEBUG,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/access.log"},
-					},
+					{MinLevel: iface.DEBUG, MaxLevel: iface.FATAL, URLs: []string{"./log/access.log"}},
 				},
 			},
 		},
-	},
-	{
-		Level: iface.INFO,
-		Loggers: []zaplog.LoggerConfig{
-			{
-				Name:            "",
-				DisableCaller:   false,
-				StacktraceLevel: zaplog.PanicStacktrace,
-				Encoding:        "json",
-				Encoder: zaplog.EncoderConfig{
-					MessageKey:    "msg",
-					LevelKey:      "level",
-					TimeKey:       "ts",
-					NameKey:       "logger",
-					CallerKey:     "caller",
-					StacktraceKey: "stacktrace",
-				},
-				Outputs: []zaplog.OutputConfig{
-					{
-						MinLevel: iface.DEBUG,
-						MaxLevel: iface.DEBUG,
-						URLs:     []string{"./log/debug.log"},
-					},
-					{
-						MinLevel: iface.INFO,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/info.log"},
-					},
-					{
-						MinLevel: iface.WARN,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/warn.log"},
-					},
-					{
-						MinLevel: iface.ERROR,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/error.log"},
-					},
-					{
-						MinLevel: iface.PANIC,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"./log/fatal.log"},
-					},
-				},
-			},
-		},
-	},
+	}
+}
+
+var configs = []zaplog.Config{
+	zaplog.NewDevelopmentConfig(),
+	zaplog.NewProductionConfig(),
+	NewAccessLoggerConfig(),
 }
 
 type MarshalFunc func(v interface{}) ([]byte, error)
+
+func MarshalJSON(v interface{}) ([]byte, error) {
+	return json.MarshalIndent(v, "", "\t")
+}
 
 func WriteConfig(marshal MarshalFunc, file string, cfg zaplog.Config) error {
 	f, err := os.Create(file)
@@ -178,10 +75,6 @@ func WriteConfig(marshal MarshalFunc, file string, cfg zaplog.Config) error {
 	return nil
 }
 
-func MarshalJSON(v interface{}) ([]byte, error) {
-	return json.MarshalIndent(v, "", "\t")
-}
-
 func main() {
 	clean := false
 	if len(os.Args) >= 2 && os.Args[1] == "clean" {
@@ -194,32 +87,32 @@ func main() {
 		config  zaplog.Config
 	}{
 		{
-			file:    "./std.json",
+			file:    "./development.json",
 			marshal: MarshalJSON,
 			config:  configs[0],
 		},
 		{
-			file:    "./std.yaml",
+			file:    "./development.yaml",
 			marshal: yaml.Marshal,
 			config:  configs[0],
 		},
 		{
-			file:    "./console.json",
+			file:    "./production.json",
 			marshal: MarshalJSON,
 			config:  configs[1],
 		},
 		{
-			file:    "./console.yaml",
+			file:    "./production.yaml",
 			marshal: yaml.Marshal,
 			config:  configs[1],
 		},
 		{
-			file:    "./json.json",
+			file:    "./access.json",
 			marshal: MarshalJSON,
 			config:  configs[2],
 		},
 		{
-			file:    "./json.yaml",
+			file:    "./access.yaml",
 			marshal: yaml.Marshal,
 			config:  configs[2],
 		},

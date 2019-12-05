@@ -6,12 +6,13 @@
 				"levelKey": "L",
 				"timeKey": "T",
 				"nameKey": "N",
-				"callerKey": "C"
+				"callerKey": "C",
+				"stacktraceKey": "S"
 			},
 			"outputs": [
 				{
 					"minLevel": "debug",
-					"maxLevel": "debug",
+					"maxLevel": "fatal",
 					"urls": [
 						"./log/debug.log"
 					]
@@ -53,7 +54,8 @@
 				"levelKey": "L",
 				"timeKey": "T",
 				"nameKey": "N",
-				"callerKey": "C"
+				"callerKey": "C",
+				"stacktraceKey": "S"
 			},
 			"outputs": [
 				{

@@ -8,7 +8,9 @@
 				"timeKey": "ts",
 				"nameKey": "logger",
 				"callerKey": "caller",
-				"stacktraceKey": "stacktrace"
+				"stacktraceKey": "stacktrace",
+				"levelEncoder": "lowercase",
+				"timeEncoder": "epoch"
 			},
 			"outputs": [
 				{

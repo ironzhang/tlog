@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/ironzhang/tlog"
 	"github.com/ironzhang/tlog/zaplog"
@@ -15,14 +18,20 @@ func LoadConfig(file string) (conf zaplog.Config, err error) {
 	if err != nil {
 		return conf, err
 	}
-	if err = json.Unmarshal(data, &conf); err != nil {
+
+	unmarshal := json.Unmarshal
+	if path.Ext(file) == ".yaml" {
+		unmarshal = yaml.Unmarshal
+	}
+
+	if err = unmarshal(data, &conf); err != nil {
 		return conf, err
 	}
 	return conf, nil
 }
 
 func main() {
-	file := "../configs/std.json"
+	file := "../configs/development.json"
 	if len(os.Args) >= 2 {
 		file = os.Args[1]
 	}

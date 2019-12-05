@@ -9,7 +9,6 @@ loggers:
     nameKey: "N"
     callerKey: C
     stacktraceKey: S
-    levelEncoder: capitalColor
   outputs:
   - minLevel: debug
     maxLevel: fatal
