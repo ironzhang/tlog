@@ -7,43 +7,42 @@ import (
 	"go.uber.org/zap"
 )
 
-var (
-	tSinkWrite int
-	tSinkSync  int
-	tSinkClose int
-)
-
 type tSink struct {
+	writeCount int
+	syncCount  int
+	closeCount int
 }
 
 func (p *tSink) Write(b []byte) (int, error) {
-	tSinkWrite++
+	p.writeCount++
 	return 0, nil
 }
 
 func (p *tSink) Sync() error {
-	tSinkSync++
+	p.syncCount++
 	return nil
 }
 
 func (p *tSink) Close() error {
-	tSinkClose++
+	p.closeCount++
 	return nil
 }
 
-func RegisterTestSinks(t testing.TB) {
-	err := zap.RegisterSink("tsink", func(u *url.URL) (zap.Sink, error) {
-		return &tSink{}, nil
+func RegisterTestSink(t testing.TB, scheme string) *tSink {
+	sink := tSink{}
+	err := zap.RegisterSink(scheme, func(u *url.URL) (zap.Sink, error) {
+		return &sink, nil
 	})
 	if err != nil {
 		t.Fatalf("register sink: %v", err)
 	}
+	return &sink
 }
 
 func TestSink(t *testing.T) {
-	RegisterTestSinks(t)
+	tsink := RegisterTestSink(t, "TestSink")
 
-	urls := []string{"tsink://1", "tsink://2"}
+	urls := []string{"TestSink://1", "TestSink://2"}
 	sink, err := newSinks(urls)
 	if err != nil {
 		t.Fatalf("new sinks: %v", err)
@@ -52,14 +51,14 @@ func TestSink(t *testing.T) {
 	sink.Sync()
 	sink.Close()
 
-	if got, want := tSinkWrite, len(urls); got != want {
+	if got, want := tsink.writeCount, len(urls); got != want {
 		t.Errorf("write: got %v, want %v", got, want)
 	}
-	if got, want := tSinkSync, len(urls); got != want {
+	if got, want := tsink.syncCount, len(urls); got != want {
 		t.Errorf("sync: got %v, want %v", got, want)
 	}
-	if got, want := tSinkClose, len(urls); got != want {
+	if got, want := tsink.closeCount, len(urls); got != want {
 		t.Errorf("close: got %v, want %v", got, want)
 	}
-	t.Logf("write: %d, sync: %d, close: %d", tSinkWrite, tSinkSync, tSinkClose)
+	t.Logf("writeCount: %d, syncCount: %d, closeCount: %d", tsink.writeCount, tsink.syncCount, tsink.closeCount)
 }

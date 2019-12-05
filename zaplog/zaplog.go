@@ -49,6 +49,7 @@ func (p *Logger) init(cfg Config, opts []Option) (err error) {
 	p.loggers = make(map[string]*zlogger.Logger)
 	for _, logger := range cfg.Loggers {
 		if err = p.openLogger(logger); err != nil {
+			p.closeLoggers()
 			return err
 		}
 	}
@@ -135,6 +136,12 @@ func buildLoggerCore(level zap.AtomicLevel, cfg LoggerConfig) (zapcore.Core, []i
 		cores = append(cores, zapcore.NewCore(enc.Clone(), sink, enab))
 	}
 	return zapcore.NewTee(cores...), closers, nil
+}
+
+func (p *Logger) closeLoggers() {
+	for _, c := range p.closers {
+		c.Close()
+	}
 }
 
 func (p *Logger) Close() (err error) {

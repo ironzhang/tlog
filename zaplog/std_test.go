@@ -15,8 +15,9 @@ func TestStdContextHook(t *testing.T) {
 		return nil
 	}
 	logger.WithContext(context.Background())
+	logger.WithContext(context.Background())
 
-	if call != 1 {
-		t.Errorf("call: got %v, want %v", call, 1)
+	if call != 2 {
+		t.Errorf("call: got %v, want %v", call, 2)
 	}
 }
