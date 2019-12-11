@@ -1,0 +1,234 @@
+package rollfile
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+)
+
+const (
+	DayLayout    = "20060102"
+	HourLayout   = "20060102-15"
+	SecondLayout = "20060102-150405"
+	NanoLayout   = "20060102-150405.99999999"
+)
+
+var (
+	BufferSize = 256 * 1024
+)
+
+var (
+	pid         = os.Getpid()
+	runInterval = 1 * time.Second
+)
+
+type File struct {
+	mu        sync.Mutex
+	file      *os.File
+	seq       int
+	size      int
+	createdAt time.Time
+	writer    *bufio.Writer
+	closed    bool
+	done      chan struct{}
+
+	name             string
+	layout           string
+	period           time.Duration
+	maxSeq           int
+	maxSize          int
+	disableCreateLog bool
+}
+
+func isValidLayout(layout string) bool {
+	switch layout {
+	case "", DayLayout, HourLayout, SecondLayout, NanoLayout:
+		return true
+	}
+	return false
+}
+
+func Open(name string, opts ...Option) (*File, error) {
+	f := &File{
+		name:    name,
+		layout:  "",
+		period:  0,
+		maxSeq:  0,
+		maxSize: 0,
+	}
+	for _, opt := range opts {
+		opt(f)
+	}
+	if !isValidLayout(f.layout) {
+		return nil, &os.PathError{Op: "open", Path: name, Err: fmt.Errorf("invalid layout %q", f.layout)}
+	}
+	if err := f.init(); err != nil {
+		return nil, &os.PathError{Op: "open", Path: name, Err: err}
+	}
+	return f, nil
+}
+
+func (f *File) init() (err error) {
+	// 1. 创建目录
+	if err = createDir(filepath.Dir(f.name)); err != nil {
+		return err
+	}
+
+	// 2. 创建文件
+	if err = f.rotate(time.Now()); err != nil {
+		return err
+	}
+
+	// 启动定时协程
+	f.done = make(chan struct{})
+	go f.running(runInterval)
+
+	return nil
+}
+
+func (f *File) running(interval time.Duration) {
+	t := time.NewTicker(interval)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-f.done:
+			return
+		case <-t.C:
+			f.runOnce()
+		}
+	}
+}
+
+func (f *File) runOnce() {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	// 1. 刷新缓冲区
+	f.writer.Flush()
+
+	// 2. 判断是否需要滚动文件
+	now := time.Now()
+	if f.shouldRotate(now) {
+		if err := f.rotate(now); err != nil {
+			fmt.Fprintf(os.Stderr, "rollfile.File: rotate file: %v\n", err)
+		}
+	}
+}
+
+func (f *File) shouldRotate(t time.Time) bool {
+	if f.maxSize > 0 && f.size >= f.maxSize {
+		return true
+	}
+	if f.period > 0 && !isSamePeriod(t, f.createdAt, f.period) {
+		return true
+	}
+	return false
+}
+
+func (f *File) rotate(t time.Time) error {
+	// 1. 关闭原文件
+	if f.file != nil {
+		f.writer.Flush()
+		f.file.Close()
+	}
+
+	// 2. 创建目标文件
+	filename := fileName(f.name, pid, f.seq, t, f.layout)
+	file, err := createFile(filename, f.name)
+	if err != nil {
+		return err
+	}
+
+	f.file = file
+	f.writer = bufio.NewWriterSize(file, BufferSize)
+	f.size = 0
+	f.createdAt = t
+	f.seq++
+	if f.maxSeq > 0 && f.seq >= f.maxSeq {
+		f.seq = 0
+	}
+
+	// 3. 输出文件创建日志
+	if !f.disableCreateLog {
+		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (f *File) wrapErr(op string, err error) error {
+	return &os.PathError{Op: op, Path: f.name, Err: err}
+}
+
+func (f *File) Write(p []byte) (n int, err error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	// 1. 是否已关闭
+	if f.closed {
+		return 0, f.wrapErr("write", os.ErrClosed)
+	}
+
+	// 2. 是否滚动文件
+	now := time.Now()
+	if f.shouldRotate(now) {
+		if err = f.rotate(now); err != nil {
+			return 0, f.wrapErr("write", fmt.Errorf("rotate: %w", err))
+		}
+	}
+
+	// 3. 写入数据
+	n, err = f.writer.Write(p)
+	f.size += n
+	if err != nil {
+		return n, f.wrapErr("write", err)
+	}
+	return n, nil
+}
+
+func (f *File) Flush() (err error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.closed {
+		return f.wrapErr("flush", os.ErrClosed)
+	}
+	if err = f.writer.Flush(); err != nil {
+		return f.wrapErr("flush", err)
+	}
+	return nil
+}
+
+func (f *File) Sync() (err error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.closed {
+		return f.wrapErr("sync", os.ErrClosed)
+	}
+	f.writer.Flush()
+	if err = f.file.Sync(); err != nil {
+		return f.wrapErr("sync", err)
+	}
+	return nil
+}
+
+func (f *File) Close() (err error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.closed {
+		return f.wrapErr("close", os.ErrClosed)
+	}
+	f.closed = true
+	close(f.done)
+	f.writer.Flush()
+	if err = f.file.Close(); err != nil {
+		return f.wrapErr("close", err)
+	}
+	return nil
+}
