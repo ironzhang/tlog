@@ -18,13 +18,15 @@ func createDir(dir string) error {
 	return os.MkdirAll(dir, os.ModePerm)
 }
 
-func createFile(filename, symlink string) (f *os.File, err error) {
-	f, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+func createFile(dir, filename, symlink string) (f *os.File, err error) {
+	file := filepath.Join(dir, filename)
+	link := filepath.Join(dir, symlink)
+	f, err = os.OpenFile(file, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
 		return nil, err
 	}
-	os.Remove(symlink)
-	os.Symlink(filepath.Base(filename), symlink)
+	os.Remove(link)
+	os.Symlink(filename, link)
 	return f, nil
 }
 

@@ -13,28 +13,29 @@ const (
 	DayLayout    = "20060102"
 	HourLayout   = "20060102-15"
 	SecondLayout = "20060102-150405"
-	NanoLayout   = "20060102-150405.99999999"
+	NanoLayout   = "20060102-150405.999999999"
 )
 
-var (
-	BufferSize = 256 * 1024
+const (
+	tickInterval  = 1 * time.Second
+	flushInterval = 5 * time.Second
 )
 
-var (
-	pid         = os.Getpid()
-	runInterval = 1 * time.Second
-)
+var BufferSize = 256 * 1024
+var pid = os.Getpid()
 
 type File struct {
 	mu        sync.Mutex
 	file      *os.File
+	writer    *bufio.Writer
 	seq       int
 	size      int
 	createdAt time.Time
-	writer    *bufio.Writer
+	flushedAt time.Time
 	closed    bool
 	done      chan struct{}
 
+	dir              string
 	name             string
 	layout           string
 	period           time.Duration
@@ -53,7 +54,8 @@ func isValidLayout(layout string) bool {
 
 func Open(name string, opts ...Option) (*File, error) {
 	f := &File{
-		name:    name,
+		dir:     filepath.Dir(name),
+		name:    filepath.Base(name),
 		layout:  "",
 		period:  0,
 		maxSeq:  0,
@@ -73,7 +75,7 @@ func Open(name string, opts ...Option) (*File, error) {
 
 func (f *File) init() (err error) {
 	// 1. 创建目录
-	if err = createDir(filepath.Dir(f.name)); err != nil {
+	if err = createDir(f.dir); err != nil {
 		return err
 	}
 
@@ -84,13 +86,13 @@ func (f *File) init() (err error) {
 
 	// 启动定时协程
 	f.done = make(chan struct{})
-	go f.running(runInterval)
+	go f.running()
 
 	return nil
 }
 
-func (f *File) running(interval time.Duration) {
-	t := time.NewTicker(interval)
+func (f *File) running() {
+	t := time.NewTicker(tickInterval)
 	defer t.Stop()
 
 	for {
@@ -98,25 +100,43 @@ func (f *File) running(interval time.Duration) {
 		case <-f.done:
 			return
 		case <-t.C:
-			f.runOnce()
+			f.tick()
 		}
 	}
 }
 
-func (f *File) runOnce() {
+func (f *File) tick() {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	// 1. 刷新缓冲区
-	f.writer.Flush()
-
-	// 2. 判断是否需要滚动文件
+	var err error
 	now := time.Now()
+
+	// 1. 刷新缓冲
+	if f.shouldFlush(now) {
+		if err = f.flush(now); err != nil {
+			fmt.Fprintf(os.Stderr, "rollfile.File: flush file: %v\n", err)
+		}
+	}
+
+	// 2. 滚动文件
 	if f.shouldRotate(now) {
-		if err := f.rotate(now); err != nil {
+		if err = f.rotate(now); err != nil {
 			fmt.Fprintf(os.Stderr, "rollfile.File: rotate file: %v\n", err)
 		}
 	}
+}
+
+func (f *File) shouldFlush(t time.Time) bool {
+	if t.Sub(f.flushedAt) < flushInterval {
+		return false
+	}
+	return true
+}
+
+func (f *File) flush(t time.Time) error {
+	f.flushedAt = t
+	return f.writer.Flush()
 }
 
 func (f *File) shouldRotate(t time.Time) bool {
@@ -138,7 +158,7 @@ func (f *File) rotate(t time.Time) error {
 
 	// 2. 创建目标文件
 	filename := fileName(f.name, pid, f.seq, t, f.layout)
-	file, err := createFile(filename, f.name)
+	file, err := createFile(f.dir, filename, f.name)
 	if err != nil {
 		return err
 	}
@@ -147,6 +167,7 @@ func (f *File) rotate(t time.Time) error {
 	f.writer = bufio.NewWriterSize(file, BufferSize)
 	f.size = 0
 	f.createdAt = t
+	f.flushedAt = t
 	f.seq++
 	if f.maxSeq > 0 && f.seq >= f.maxSeq {
 		f.seq = 0
@@ -199,7 +220,7 @@ func (f *File) Flush() (err error) {
 	if f.closed {
 		return f.wrapErr("flush", os.ErrClosed)
 	}
-	if err = f.writer.Flush(); err != nil {
+	if err = f.flush(time.Now()); err != nil {
 		return f.wrapErr("flush", err)
 	}
 	return nil
@@ -211,7 +232,7 @@ func (f *File) Sync() (err error) {
 	if f.closed {
 		return f.wrapErr("sync", os.ErrClosed)
 	}
-	f.writer.Flush()
+	f.flush(time.Now())
 	if err = f.file.Sync(); err != nil {
 		return f.wrapErr("sync", err)
 	}

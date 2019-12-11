@@ -12,8 +12,8 @@ func SetLayout(layout string) Option {
 
 func SetPeriod(period time.Duration) Option {
 	return func(f *File) {
-		if period < runInterval {
-			period = runInterval
+		if period < tickInterval {
+			period = tickInterval
 		}
 		f.period = period
 	}
