@@ -35,13 +35,13 @@ type File struct {
 	closed    bool
 	done      chan struct{}
 
-	dir              string
-	name             string
-	layout           string
-	period           time.Duration
-	maxSeq           int
-	maxSize          int
-	disableCreateLog bool
+	dir            string
+	name           string
+	layout         string
+	period         time.Duration
+	maxSeq         int
+	maxSize        int
+	printCreateLog bool
 }
 
 func isValidLayout(layout string) bool {
@@ -174,7 +174,7 @@ func (f *File) rotate(t time.Time) error {
 	}
 
 	// 3. 输出文件创建日志
-	if !f.disableCreateLog {
+	if f.printCreateLog {
 		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
 		if err != nil {
 			return err

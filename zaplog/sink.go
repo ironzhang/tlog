@@ -3,6 +3,8 @@ package zaplog
 import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+
+	_ "github.com/ironzhang/tlog/zaplog/zsink"
 )
 
 func newSinks(urls []string) (zap.Sink, error) {

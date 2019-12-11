@@ -31,8 +31,8 @@ func SetMaxSize(maxSize int) Option {
 	}
 }
 
-func DisableCreateLog() Option {
+func PrintCreateLog() Option {
 	return func(f *File) {
-		f.disableCreateLog = true
+		f.printCreateLog = true
 	}
 }

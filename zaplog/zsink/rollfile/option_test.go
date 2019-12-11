@@ -31,8 +31,8 @@ func TestOption(t *testing.T) {
 			chk: func(f *File) bool { return f.maxSize == 2 },
 		},
 		{
-			opt: DisableCreateLog(),
-			chk: func(f *File) bool { return f.disableCreateLog == true },
+			opt: PrintCreateLog(),
+			chk: func(f *File) bool { return f.printCreateLog == true },
 		},
 	}
 	for i, tt := range tests {

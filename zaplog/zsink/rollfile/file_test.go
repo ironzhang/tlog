@@ -166,12 +166,12 @@ func TestFileSetMaxSize(t *testing.T) {
 	PrintTestData(t, f, 1024, "Hello, world\n")
 }
 
-func TestFileDisableCreateLog(t *testing.T) {
-	f, err := Open("./testdata/test_file_disable_create_log/file.log", DisableCreateLog())
+func TestFilePrintCreateLog(t *testing.T) {
+	f, err := Open("./testdata/test_file_print_create_log/file.log", PrintCreateLog())
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
 	defer f.Close()
 
-	PrintTestData(t, f, 1024, "Hello, world\n")
+	PrintTestData(t, f, 1, "Hello, world\n")
 }

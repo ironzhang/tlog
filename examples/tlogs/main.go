@@ -38,12 +38,12 @@ func main() {
 
 	cfg, err := LoadConfig(file)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "load config: %v", err)
+		fmt.Fprintf(os.Stderr, "load config: %v\n", err)
 		return
 	}
 	logger, err := zaplog.New(cfg)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "new logger: %v", err)
+		fmt.Fprintf(os.Stderr, "new logger: %v\n", err)
 		return
 	}
 	defer logger.Close()

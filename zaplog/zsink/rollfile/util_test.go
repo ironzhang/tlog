@@ -119,7 +119,7 @@ func TestCreateFile(t *testing.T) {
 		},
 	}
 	for i, tt := range tests {
-		f, err := createFile("testdata/test_create_file", tt.filename, tt.symlink)
+		f, err := createFile(dir, tt.filename, tt.symlink)
 		if err != nil {
 			t.Errorf("%d: create file %q: %v", i, tt.filename, err)
 			continue
