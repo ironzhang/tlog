@@ -3,12 +3,11 @@ package zsink
 import (
 	"fmt"
 	"net/url"
-	"strconv"
 	"strings"
-	"time"
+
+	"go.uber.org/zap"
 
 	"github.com/ironzhang/tlog/zaplog/zsink/rollfile"
-	"go.uber.org/zap"
 )
 
 func newRollFileSink(u *url.URL) (zap.Sink, error) {
@@ -41,8 +40,12 @@ func parseFilePath(u *url.URL) (string, error) {
 func parseFileOptions(u *url.URL) (opts []rollfile.Option, err error) {
 	params := values(u.Query())
 
-	layout, ok := params.Get("layout")
+	suffix, ok := params.Get("suffix")
 	if ok {
+		layout, err := suffixToLayout(suffix)
+		if err != nil {
+			return nil, err
+		}
 		opts = append(opts, rollfile.SetLayout(layout))
 	}
 
@@ -62,7 +65,7 @@ func parseFileOptions(u *url.URL) (opts []rollfile.Option, err error) {
 		opts = append(opts, rollfile.SetMaxSeq(maxSeq))
 	}
 
-	maxSize, ok, err := params.GetInt("maxSize")
+	maxSize, ok, err := params.GetSize("maxSize")
 	if err != nil {
 		return nil, err
 	}
@@ -73,41 +76,19 @@ func parseFileOptions(u *url.URL) (opts []rollfile.Option, err error) {
 	return opts, nil
 }
 
-type values url.Values
-
-func (v values) Get(key string) (string, bool) {
-	if v == nil {
-		return "", false
+func suffixToLayout(s string) (string, error) {
+	switch strings.ToLower(s) {
+	case "d", "day":
+		return rollfile.DayLayout, nil
+	case "h", "hour":
+		return rollfile.HourLayout, nil
+	case "s", "second":
+		return rollfile.SecondLayout, nil
+	case "n", "nano":
+		return rollfile.NanoLayout, nil
+	default:
+		return "", fmt.Errorf("unknown suffix pattern %q", s)
 	}
-	vs := v[key]
-	if len(vs) == 0 {
-		return "", false
-	}
-	return vs[0], true
-}
-
-func (v values) GetInt(key string) (int, bool, error) {
-	s, ok := v.Get(key)
-	if !ok {
-		return 0, false, nil
-	}
-	n, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, false, err
-	}
-	return n, true, nil
-}
-
-func (v values) GetDuration(key string) (time.Duration, bool, error) {
-	s, ok := v.Get(key)
-	if !ok {
-		return 0, false, nil
-	}
-	d, err := time.ParseDuration(s)
-	if err != nil {
-		return 0, false, err
-	}
-	return d, true, nil
 }
 
 func init() {
