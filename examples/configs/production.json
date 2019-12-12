@@ -1,6 +1,7 @@
 {
-	"loggers": [
+	"cores": [
 		{
+			"name": "Debug",
 			"encoding": "json",
 			"encoder": {
 				"messageKey": "msg",
@@ -12,42 +13,97 @@
 				"levelEncoder": "lowercase",
 				"timeEncoder": "epoch"
 			},
-			"outputs": [
-				{
-					"minLevel": "debug",
-					"maxLevel": "debug",
-					"urls": [
-						"/tmp/log/debug.log"
-					]
-				},
-				{
-					"minLevel": "info",
-					"maxLevel": "fatal",
-					"urls": [
-						"/tmp/log/info.log"
-					]
-				},
-				{
-					"minLevel": "warn",
-					"maxLevel": "fatal",
-					"urls": [
-						"/tmp/log/warn.log"
-					]
-				},
-				{
-					"minLevel": "error",
-					"maxLevel": "fatal",
-					"urls": [
-						"/tmp/log/error.log"
-					]
-				},
-				{
-					"minLevel": "panic",
-					"maxLevel": "fatal",
-					"urls": [
-						"/tmp/log/fatal.log"
-					]
-				}
+			"minLevel": "debug",
+			"maxLevel": "debug",
+			"urls": [
+				"/tmp/log/debug.log"
+			]
+		},
+		{
+			"name": "Info",
+			"encoding": "json",
+			"encoder": {
+				"messageKey": "msg",
+				"levelKey": "level",
+				"timeKey": "ts",
+				"nameKey": "logger",
+				"callerKey": "caller",
+				"stacktraceKey": "stacktrace",
+				"levelEncoder": "lowercase",
+				"timeEncoder": "epoch"
+			},
+			"minLevel": "info",
+			"maxLevel": "fatal",
+			"urls": [
+				"/tmp/log/info.log"
+			]
+		},
+		{
+			"name": "Warn",
+			"encoding": "json",
+			"encoder": {
+				"messageKey": "msg",
+				"levelKey": "level",
+				"timeKey": "ts",
+				"nameKey": "logger",
+				"callerKey": "caller",
+				"stacktraceKey": "stacktrace",
+				"levelEncoder": "lowercase",
+				"timeEncoder": "epoch"
+			},
+			"minLevel": "warn",
+			"maxLevel": "fatal",
+			"urls": [
+				"/tmp/log/warn.log"
+			]
+		},
+		{
+			"name": "Error",
+			"encoding": "json",
+			"encoder": {
+				"messageKey": "msg",
+				"levelKey": "level",
+				"timeKey": "ts",
+				"nameKey": "logger",
+				"callerKey": "caller",
+				"stacktraceKey": "stacktrace",
+				"levelEncoder": "lowercase",
+				"timeEncoder": "epoch"
+			},
+			"minLevel": "error",
+			"maxLevel": "fatal",
+			"urls": [
+				"/tmp/log/error.log"
+			]
+		},
+		{
+			"name": "Fatal",
+			"encoding": "json",
+			"encoder": {
+				"messageKey": "msg",
+				"levelKey": "level",
+				"timeKey": "ts",
+				"nameKey": "logger",
+				"callerKey": "caller",
+				"stacktraceKey": "stacktrace",
+				"levelEncoder": "lowercase",
+				"timeEncoder": "epoch"
+			},
+			"minLevel": "panic",
+			"maxLevel": "fatal",
+			"urls": [
+				"/tmp/log/fatal.log"
+			]
+		}
+	],
+	"loggers": [
+		{
+			"cores": [
+				"Debug",
+				"Info",
+				"Warn",
+				"Error",
+				"Fatal"
 			]
 		}
 	]

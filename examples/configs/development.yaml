@@ -1,6 +1,6 @@
 level: debug
-loggers:
-- stacktraceLevel: disable
+cores:
+- name: Stderr
   encoding: console
   encoder:
     messageKey: M
@@ -9,8 +9,11 @@ loggers:
     nameKey: "N"
     callerKey: C
     stacktraceKey: S
-  outputs:
-  - minLevel: debug
-    maxLevel: fatal
-    urls:
-    - stderr
+  minLevel: debug
+  maxLevel: fatal
+  urls:
+  - stderr
+loggers:
+- stacktraceLevel: disable
+  cores:
+  - Stderr

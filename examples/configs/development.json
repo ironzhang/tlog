@@ -1,8 +1,8 @@
 {
 	"level": "debug",
-	"loggers": [
+	"cores": [
 		{
-			"stacktraceLevel": "disable",
+			"name": "Stderr",
 			"encoding": "console",
 			"encoder": {
 				"messageKey": "M",
@@ -12,14 +12,18 @@
 				"callerKey": "C",
 				"stacktraceKey": "S"
 			},
-			"outputs": [
-				{
-					"minLevel": "debug",
-					"maxLevel": "fatal",
-					"urls": [
-						"stderr"
-					]
-				}
+			"minLevel": "debug",
+			"maxLevel": "fatal",
+			"urls": [
+				"stderr"
+			]
+		}
+	],
+	"loggers": [
+		{
+			"stacktraceLevel": "disable",
+			"cores": [
+				"Stderr"
 			]
 		}
 	]

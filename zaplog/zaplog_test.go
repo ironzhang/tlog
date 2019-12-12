@@ -25,15 +25,17 @@ func TestLoggerSync(t *testing.T) {
 	tsink := RegisterTestSink(t, "TestLoggerSync")
 	cfg := Config{
 		Level: iface.DEBUG,
+		Cores: []CoreConfig{
+			{
+				Name:     "Test",
+				MinLevel: iface.DEBUG,
+				MaxLevel: iface.FATAL,
+				URLs:     []string{"TestLoggerSync://1", "TestLoggerSync://2"},
+			},
+		},
 		Loggers: []LoggerConfig{
 			{
-				Outputs: []OutputConfig{
-					{
-						MinLevel: iface.DEBUG,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"TestLoggerSync://1", "TestLoggerSync://2"},
-					},
-				},
+				Cores: []string{"Test"},
 			},
 		},
 	}
@@ -54,15 +56,17 @@ func TestLoggerClose(t *testing.T) {
 	tsink := RegisterTestSink(t, "TestLoggerClose")
 	cfg := Config{
 		Level: iface.DEBUG,
+		Cores: []CoreConfig{
+			{
+				Name:     "Test",
+				MinLevel: iface.DEBUG,
+				MaxLevel: iface.FATAL,
+				URLs:     []string{"TestLoggerClose://1", "TestLoggerClose://2"},
+			},
+		},
 		Loggers: []LoggerConfig{
 			{
-				Outputs: []OutputConfig{
-					{
-						MinLevel: iface.DEBUG,
-						MaxLevel: iface.FATAL,
-						URLs:     []string{"TestLoggerClose://1", "TestLoggerClose://2"},
-					},
-				},
+				Cores: []string{"Test"},
 			},
 		},
 	}
@@ -74,7 +78,7 @@ func TestLoggerClose(t *testing.T) {
 	if err := logger.Close(); err != nil {
 		t.Fatalf("close: %v", err)
 	}
-	if got, want := tsink.syncCount, 2; got != want {
+	if got, want := tsink.closeCount, 2; got != want {
 		t.Errorf("close count: got %v, want %v", got, want)
 	}
 }
