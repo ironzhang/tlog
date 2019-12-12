@@ -13,7 +13,7 @@
 			"minLevel": "debug",
 			"maxLevel": "fatal",
 			"urls": [
-				"/tmp/log/debug.log"
+				"rfile://rootdir/tmp/log/debug.log"
 			]
 		},
 		{
@@ -29,7 +29,7 @@
 			"minLevel": "info",
 			"maxLevel": "fatal",
 			"urls": [
-				"/tmp/log/info.log"
+				"rfile://rootdir/tmp/log/info.log"
 			]
 		},
 		{
@@ -45,7 +45,7 @@
 			"minLevel": "warn",
 			"maxLevel": "fatal",
 			"urls": [
-				"/tmp/log/warn.log"
+				"rfile://rootdir/tmp/log/warn.log"
 			]
 		},
 		{
@@ -61,7 +61,7 @@
 			"minLevel": "error",
 			"maxLevel": "fatal",
 			"urls": [
-				"/tmp/log/error.log"
+				"rfile://rootdir/tmp/log/error.log"
 			]
 		},
 		{
@@ -77,7 +77,7 @@
 			"minLevel": "panic",
 			"maxLevel": "fatal",
 			"urls": [
-				"/tmp/log/fatal.log"
+				"rfile://rootdir/tmp/log/fatal.log"
 			]
 		},
 		{
@@ -93,7 +93,7 @@
 			"minLevel": "debug",
 			"maxLevel": "fatal",
 			"urls": [
-				"/tmp/log/access.log"
+				"rfile://rootdir/tmp/log/access.log"
 			]
 		}
 	],

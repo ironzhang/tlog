@@ -22,6 +22,7 @@ func ExampleNew() {
 		fmt.Fprintf(os.Stderr, "new: %v", err)
 		return
 	}
+	defer logger.Close()
 
 	logger.Debug("debug")
 	logger.Info("info")

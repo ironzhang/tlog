@@ -21,7 +21,7 @@ func NewAccessLoggerConfig() zaplog.Config {
 				Encoder:  zaplog.NewConsoleEncoderConfig(),
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/debug.log"},
+				URLs:     []string{"rfile://rootdir/tmp/log/debug.log"},
 			},
 			{
 				Name:     "Info",
@@ -29,7 +29,7 @@ func NewAccessLoggerConfig() zaplog.Config {
 				Encoder:  zaplog.NewConsoleEncoderConfig(),
 				MinLevel: iface.INFO,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/info.log"},
+				URLs:     []string{"rfile://rootdir/tmp/log/info.log"},
 			},
 			{
 				Name:     "Warn",
@@ -37,7 +37,7 @@ func NewAccessLoggerConfig() zaplog.Config {
 				Encoder:  zaplog.NewConsoleEncoderConfig(),
 				MinLevel: iface.WARN,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/warn.log"},
+				URLs:     []string{"rfile://rootdir/tmp/log/warn.log"},
 			},
 			{
 				Name:     "Error",
@@ -45,7 +45,7 @@ func NewAccessLoggerConfig() zaplog.Config {
 				Encoder:  zaplog.NewConsoleEncoderConfig(),
 				MinLevel: iface.ERROR,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/error.log"},
+				URLs:     []string{"rfile://rootdir/tmp/log/error.log"},
 			},
 			{
 				Name:     "Fatal",
@@ -53,7 +53,7 @@ func NewAccessLoggerConfig() zaplog.Config {
 				Encoder:  zaplog.NewConsoleEncoderConfig(),
 				MinLevel: iface.PANIC,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/fatal.log"},
+				URLs:     []string{"rfile://rootdir/tmp/log/fatal.log"},
 			},
 			{
 				Name:     "Access",
@@ -61,7 +61,7 @@ func NewAccessLoggerConfig() zaplog.Config {
 				Encoder:  zaplog.NewConsoleEncoderConfig(),
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/access.log"},
+				URLs:     []string{"rfile://rootdir/tmp/log/access.log"},
 			},
 		},
 		Loggers: []zaplog.LoggerConfig{

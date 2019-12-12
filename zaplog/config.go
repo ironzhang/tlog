@@ -491,7 +491,7 @@ func NewProductionConfig() Config {
 				Encoder:  NewJSONEncoderConfig(),
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.DEBUG,
-				URLs:     []string{"/tmp/log/debug.log"},
+				URLs:     []string{"rfile://workdir/log/debug.log"},
 			},
 			{
 				Name:     "Info",
@@ -499,7 +499,7 @@ func NewProductionConfig() Config {
 				Encoder:  NewJSONEncoderConfig(),
 				MinLevel: iface.INFO,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/info.log"},
+				URLs:     []string{"rfile://workdir/log/info.log"},
 			},
 			{
 				Name:     "Warn",
@@ -507,7 +507,7 @@ func NewProductionConfig() Config {
 				Encoder:  NewJSONEncoderConfig(),
 				MinLevel: iface.WARN,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/warn.log"},
+				URLs:     []string{"rfile://workdir/log/warn.log"},
 			},
 			{
 				Name:     "Error",
@@ -515,7 +515,7 @@ func NewProductionConfig() Config {
 				Encoder:  NewJSONEncoderConfig(),
 				MinLevel: iface.ERROR,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/error.log"},
+				URLs:     []string{"rfile://workdir/log/error.log"},
 			},
 			{
 				Name:     "Fatal",
@@ -523,7 +523,7 @@ func NewProductionConfig() Config {
 				Encoder:  NewJSONEncoderConfig(),
 				MinLevel: iface.PANIC,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"/tmp/log/fatal.log"},
+				URLs:     []string{"rfile://workdir/log/fatal.log"},
 			},
 		},
 		Loggers: []LoggerConfig{
