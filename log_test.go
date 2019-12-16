@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"testing"
 
 	"github.com/ironzhang/tlog"
 	"github.com/ironzhang/tlog/iface"
@@ -21,20 +22,45 @@ func RecoverPanic(f func()) {
 	f()
 }
 
-func PrintLog(name string) {
-	min, max := iface.DEBUG, iface.PANIC
-	for lv := min; lv <= max; lv++ {
-		RecoverPanic(func() {
-			tlog.Print(0, lv, "Print ", lv, " ", name)
-		})
-		RecoverPanic(func() {
-			tlog.Printf(0, lv, "Printf %s %s", lv, name)
-		})
-		RecoverPanic(func() {
-			tlog.Printw(0, lv, "Printw", "level", lv, "name", name)
-		})
-	}
+func PrintAccessLogs(name string) {
+	logger := tlog.GetLogger("access").WithArgs("logger", "access")
 
+	logger.Debug("Debug ", name)
+	logger.Debugf("Debugf %s", name)
+	logger.Debugw("Debugw", "name", name)
+
+	logger.Info("Info ", name)
+	logger.Infof("Infof %s", name)
+	logger.Infow("Infow", "name", name)
+
+	logger.Warn("Warn ", name)
+	logger.Warnf("Warnf %s", name)
+	logger.Warnw("Warnw", "name", name)
+
+	logger.Error("Error ", name)
+	logger.Errorf("Errorf %s", name)
+	logger.Errorw("Errorw", "name", name)
+
+	RecoverPanic(func() {
+		logger.Panic("Panic ", name)
+	})
+	RecoverPanic(func() {
+		logger.Panicf("Panicf %s", name)
+	})
+	RecoverPanic(func() {
+		logger.Panicw("Panicw", "name", name)
+	})
+
+	logger.Print(0, iface.INFO, "Print ", name)
+	logger.Printf(0, iface.INFO, "Printf %s", name)
+	logger.Printw(0, iface.INFO, "Printw", "name", name)
+
+	logger.WithArgs("name", name).Info("with args")
+	logger.WithContext(context.Background()).Info("with context")
+	logger.WithArgs("name", name).WithContext(context.Background()).Info("with args and with context")
+}
+
+func PrintLogs(name string) {
 	tlog.Debug("Debug ", name)
 	tlog.Debugf("Debugf %s", name)
 	tlog.Debugw("Debugw", "name", name)
@@ -52,7 +78,7 @@ func PrintLog(name string) {
 	tlog.Errorw("Errorw", "name", name)
 
 	RecoverPanic(func() {
-		tlog.Panic("Panic", name)
+		tlog.Panic("Panic ", name)
 	})
 	RecoverPanic(func() {
 		tlog.Panicf("Panicf %s", name)
@@ -61,33 +87,35 @@ func PrintLog(name string) {
 		tlog.Panicw("Panicw", "name", name)
 	})
 
+	tlog.Print(0, iface.INFO, "Print ", name)
+	tlog.Printf(0, iface.INFO, "Printf %s", name)
+	tlog.Printw(0, iface.INFO, "Printw", "name", name)
+
 	tlog.WithArgs("name", name).Info("with args")
 	tlog.WithContext(context.Background()).Info("with context")
 	tlog.WithArgs("name", name).WithContext(context.Background()).Info("with args and with context")
+
+	PrintAccessLogs(name)
 }
 
-func ExampleNopLogger() {
-	tlog.SetFactory(nil)
-	PrintLog("ExampleNopLogger")
-
-	// output:
-}
-
-func ExampleStdLogger() {
+func TestStdLogger(t *testing.T) {
 	zaplog.StdContextHook = ContextTestHook
-	PrintLog("ExampleStdLogger")
-
-	// output:
+	PrintLogs("TestStdLogger")
 }
 
-func ExampleLogger() {
+func TestNopLogger(t *testing.T) {
+	tlog.SetFactory(nil)
+	PrintLogs("TestNopLogger")
+	tlog.SetFactory(zaplog.StdLogger())
+}
+
+func TestLogger(t *testing.T) {
 	logger, err := zaplog.New(zaplog.NewDevelopmentConfig(), zaplog.SetContextHook(zaplog.ContextHookFunc(ContextTestHook)))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "new logger: %v", err)
 		return
 	}
 	tlog.SetFactory(logger)
-	PrintLog("ExampleLogger")
-
-	// output:
+	PrintLogs("ExampleLogger")
+	tlog.SetFactory(zaplog.StdLogger())
 }
