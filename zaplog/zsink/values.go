@@ -76,7 +76,7 @@ func parseSize(s string) (int, error) {
 	}
 	unit, ok := unitMap[unitstr]
 	if !ok {
-		return 0, fmt.Errorf("unknown unit %q", unitstr)
+		return 0, fmt.Errorf("unknown unit %s in size %s", unitstr, s)
 	}
 	return size * unit, nil
 }
