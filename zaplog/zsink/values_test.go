@@ -30,6 +30,7 @@ func TestParseSize(t *testing.T) {
 		size int
 		err  string
 	}{
+		{s: "aa", err: "unknown unit"},
 		{s: "10TB", err: "unknown unit"},
 		{s: "1.0B", err: "strconv.Atoi"},
 		{s: "10", size: 10},

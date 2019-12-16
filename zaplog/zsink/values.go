@@ -70,13 +70,13 @@ var unitMap = map[string]int{
 
 func parseSize(s string) (int, error) {
 	sizestr, unitstr := splitSizeUnit(s)
-	size, err := strconv.Atoi(sizestr)
-	if err != nil {
-		return 0, err
-	}
 	unit, ok := unitMap[unitstr]
 	if !ok {
 		return 0, fmt.Errorf("unknown unit %s in size %s", unitstr, s)
+	}
+	size, err := strconv.Atoi(sizestr)
+	if err != nil {
+		return 0, err
 	}
 	return size * unit, nil
 }
@@ -87,5 +87,5 @@ func splitSizeUnit(s string) (size string, unit string) {
 			return s[:n+1], strings.ToUpper(s[n+1:])
 		}
 	}
-	return s, ""
+	return "", s
 }

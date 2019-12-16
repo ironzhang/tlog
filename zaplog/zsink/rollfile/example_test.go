@@ -27,4 +27,5 @@ func ExampleFile() {
 func TestMain(m *testing.M) {
 	os.RemoveAll("./testdata")
 	m.Run()
+	os.RemoveAll("./testdata")
 }

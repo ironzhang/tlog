@@ -3,6 +3,7 @@ package zaplog
 import (
 	"fmt"
 	"os"
+	"testing"
 )
 
 func ExampleStdLogger() {
@@ -30,4 +31,10 @@ func ExampleNew() {
 	logger.Error("error")
 
 	// output:
+}
+
+func TestMain(m *testing.M) {
+	os.RemoveAll("./log")
+	m.Run()
+	os.RemoveAll("./log")
 }
