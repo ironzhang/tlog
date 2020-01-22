@@ -27,7 +27,7 @@ type Logger struct {
 	hook  ContextHook
 	level zap.AtomicLevel
 
-	iface.Logger
+	*zlogger.Logger
 	closers []io.Closer
 	cores   map[string]zapcore.Core
 	loggers map[string]*zlogger.Logger
@@ -186,5 +186,5 @@ func (p *Logger) GetLogger(name string) iface.Logger {
 	if logger, ok := p.loggers[name]; ok {
 		return logger
 	}
-	return p.Logger
+	return p.Logger.Named(name)
 }

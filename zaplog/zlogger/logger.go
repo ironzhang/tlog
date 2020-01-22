@@ -47,6 +47,15 @@ func (p *Logger) clone(nctxs, nargs int) *Logger {
 	return c
 }
 
+func (p *Logger) Named(name string) iface.Logger {
+	if len(name) <= 0 {
+		return p
+	}
+	c := p.clone(0, 0)
+	c.base = c.base.Named(name)
+	return c
+}
+
 func (p *Logger) WithArgs(args ...interface{}) iface.Logger {
 	if len(args) <= 0 {
 		return p
