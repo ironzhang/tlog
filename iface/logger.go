@@ -6,6 +6,7 @@ import (
 
 // Logger 日志接口
 type Logger interface {
+	Named(name string) Logger
 	WithArgs(args ...interface{}) Logger
 	WithContext(ctx context.Context) Logger
 
@@ -36,10 +37,4 @@ type Logger interface {
 	Print(depth int, level Level, args ...interface{})
 	Printf(depth int, level Level, format string, args ...interface{})
 	Printw(depth int, level Level, message string, kvs ...interface{})
-}
-
-// Factory 日志工厂接口
-type Factory interface {
-	GetDefaultLogger() Logger
-	GetLogger(name string) Logger
 }

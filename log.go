@@ -19,11 +19,11 @@ const (
 )
 
 type Logger = iface.Logger
-type Factory = iface.Factory
 
 type nopLogger struct {
 }
 
+func (p nopLogger) Named(name string) Logger                                          { return p }
 func (p nopLogger) WithArgs(args ...interface{}) Logger                               { return p }
 func (p nopLogger) WithContext(ctx context.Context) Logger                            { return p }
 func (p nopLogger) Debug(args ...interface{})                                         {}
@@ -48,37 +48,25 @@ func (p nopLogger) Print(depth int, level Level, args ...interface{})           
 func (p nopLogger) Printf(depth int, level Level, format string, args ...interface{}) {}
 func (p nopLogger) Printw(depth int, level Level, message string, kvs ...interface{}) {}
 
-type nopLoggerFactory struct{}
-
-func (p nopLoggerFactory) GetDefaultLogger() Logger {
-	return nopLogger{}
-}
-
-func (p nopLoggerFactory) GetLogger(name string) Logger {
-	return nopLogger{}
-}
-
 func init() {
-	SetFactory(zaplog.StdLogger())
+	SetLogger(zaplog.StdLogger())
 }
 
 var logging Logger
-var factory Factory
 
-func SetFactory(f Factory) {
-	if f == nil {
-		f = nopLoggerFactory{}
+func SetLogger(l Logger) {
+	if l == nil {
+		l = nopLogger{}
 	}
-	factory = f
-	logging = f.GetDefaultLogger()
+	logging = l
 }
 
-func GetLogging() Logger {
+func GetLogger() Logger {
 	return logging
 }
 
-func GetLogger(name string) Logger {
-	return factory.GetLogger(name)
+func Named(name string) Logger {
+	return logging.Named(name)
 }
 
 func WithArgs(args ...interface{}) Logger {

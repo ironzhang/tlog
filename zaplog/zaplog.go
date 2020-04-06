@@ -178,11 +178,7 @@ func (p *Logger) SetLevel(level iface.Level) {
 	p.level.SetLevel(zbase.ZapLevel(level))
 }
 
-func (p *Logger) GetDefaultLogger() iface.Logger {
-	return p.Logger
-}
-
-func (p *Logger) GetLogger(name string) iface.Logger {
+func (p *Logger) Named(name string) iface.Logger {
 	if logger, ok := p.loggers[name]; ok {
 		return logger
 	}

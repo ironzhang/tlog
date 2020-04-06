@@ -23,7 +23,7 @@ func RecoverPanic(f func()) {
 }
 
 func PrintAccessLogs(name string) {
-	logger := tlog.GetLogger("access").WithArgs("logger", "access")
+	logger := tlog.Named("access").WithArgs("logger", "access")
 
 	logger.Debug("Debug ", name)
 	logger.Debugf("Debugf %s", name)
@@ -104,9 +104,9 @@ func TestStdLogger(t *testing.T) {
 }
 
 func TestNopLogger(t *testing.T) {
-	tlog.SetFactory(nil)
+	tlog.SetLogger(nil)
 	PrintLogs("TestNopLogger")
-	tlog.SetFactory(zaplog.StdLogger())
+	tlog.SetLogger(zaplog.StdLogger())
 }
 
 func TestLogger(t *testing.T) {
@@ -115,7 +115,7 @@ func TestLogger(t *testing.T) {
 		fmt.Fprintf(os.Stderr, "new logger: %v", err)
 		return
 	}
-	tlog.SetFactory(logger)
+	tlog.SetLogger(logger)
 	PrintLogs("ExampleLogger")
-	tlog.SetFactory(zaplog.StdLogger())
+	tlog.SetLogger(zaplog.StdLogger())
 }

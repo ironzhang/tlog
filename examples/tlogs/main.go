@@ -48,7 +48,7 @@ func main() {
 	}
 	defer logger.Close()
 
-	tlog.SetFactory(logger)
+	tlog.SetLogger(logger)
 
 	run()
 }
@@ -59,7 +59,7 @@ func run() {
 	tlog.Warn("warn")
 	tlog.Error("error")
 
-	log := tlog.GetLogger("access")
+	log := tlog.Named("access")
 	log.Debug("access debug")
 	log.Info("access info")
 	log.Warn("access warn")

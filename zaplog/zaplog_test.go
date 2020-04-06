@@ -83,49 +83,31 @@ func TestLoggerClose(t *testing.T) {
 	}
 }
 
-func TestGetLogger(t *testing.T) {
-	cfg := Config{
-		Loggers: []LoggerConfig{
-			{Name: "root"},
-			{Name: "n1"},
-			{Name: "n2"},
-		},
-	}
-	logger, err := New(cfg)
-	if err != nil {
-		t.Fatalf("new: %v", err)
-	}
-
-	tests := []struct {
-		name   string
-		expect string
-	}{
-		{name: "root", expect: "root"},
-		{name: "n1", expect: "n1"},
-		{name: "n2", expect: "n2"},
-		//{name: "n3", expect: "root"},
-	}
-	for i, tt := range tests {
-		if got, want := logger.GetLogger(tt.name), logger.GetLogger(tt.expect); got != want {
-			t.Errorf("%d: get logger: got %p, want %p", i, got, want)
-		}
-	}
-}
-
-func TestGetDefaultLogger(t *testing.T) {
-	cfg := Config{
-		Loggers: []LoggerConfig{
-			{Name: "root"},
-			{Name: "n1"},
-			{Name: "n2"},
-		},
-	}
-	logger, err := New(cfg)
-	if err != nil {
-		t.Fatalf("new: %v", err)
-	}
-
-	if got, want := logger.GetDefaultLogger(), logger.GetLogger("root"); got != want {
-		t.Errorf("get default logger: got %p, want %p", got, want)
-	}
-}
+//func TestNamed(t *testing.T) {
+//	cfg := Config{
+//		Loggers: []LoggerConfig{
+//			{Name: "root"},
+//			{Name: "n1"},
+//			{Name: "n2"},
+//		},
+//	}
+//	logger, err := New(cfg)
+//	if err != nil {
+//		t.Fatalf("new: %v", err)
+//	}
+//
+//	tests := []struct {
+//		name   string
+//		expect string
+//	}{
+//		{name: "root", expect: "root"},
+//		{name: "n1", expect: "n1"},
+//		{name: "n2", expect: "n2"},
+//		//{name: "n3", expect: "root"},
+//	}
+//	for i, tt := range tests {
+//		if got, want := logger.Named(tt.name), logger.Named(tt.expect); got != want {
+//			t.Errorf("%d: get logger: got %p, want %p", i, got, want)
+//		}
+//	}
+//}
