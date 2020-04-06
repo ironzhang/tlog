@@ -3,7 +3,7 @@ package zbase
 import (
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ironzhang/tlog/iface"
+	"git.xiaojukeji.com/pearls/tlog/iface"
 )
 
 func ZapLevel(lv iface.Level) zapcore.Level {

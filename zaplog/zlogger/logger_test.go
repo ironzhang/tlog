@@ -10,8 +10,8 @@ import (
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest/observer"
 
-	"github.com/ironzhang/tlog/iface"
-	"github.com/ironzhang/tlog/zaplog/zbase"
+	"git.xiaojukeji.com/pearls/tlog/iface"
+	"git.xiaojukeji.com/pearls/tlog/zaplog/zbase"
 )
 
 type TContextHook struct {

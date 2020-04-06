@@ -3,7 +3,7 @@ package zaplog
 import (
 	"testing"
 
-	"github.com/ironzhang/tlog/iface"
+	"git.xiaojukeji.com/pearls/tlog/iface"
 )
 
 func TestLoggerLevel(t *testing.T) {
