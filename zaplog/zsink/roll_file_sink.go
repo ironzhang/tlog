@@ -28,9 +28,9 @@ func newRollFileSink(u *url.URL) (zap.Sink, error) {
 
 func parseFilePath(u *url.URL) (string, error) {
 	switch hostname := u.Hostname(); hostname {
-	case "localhost", "rootdir":
+	case "localhost", "rootdir", "$localhost", "$rootdir":
 		return u.Path, nil
-	case "workdir":
+	case "workdir", "$workdir":
 		return strings.TrimPrefix(u.Path, "/"), nil
 	default:
 		return "", fmt.Errorf("invalid hostname %q", hostname)
