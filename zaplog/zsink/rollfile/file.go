@@ -11,7 +11,7 @@ import (
 
 const (
 	DayLayout    = "20060102"
-	HourLayout   = "20060102-15"
+	HourLayout   = "2006010215"
 	SecondLayout = "20060102-150405"
 	NanoLayout   = "20060102-150405.999999999"
 )

@@ -48,7 +48,7 @@ func TestFileName(t *testing.T) {
 			seq:    0,
 			time:   ts,
 			layout: HourLayout,
-			name:   "debug.log.0.0.20191206-14",
+			name:   "debug.log.0.0.2019120614",
 		},
 		{
 			prefix: "debug.log",
