@@ -58,36 +58,32 @@ func TestParseFilePath(t *testing.T) {
 	}
 }
 
-func TestSuffixToLayout(t *testing.T) {
+func TestStringToCutFormat(t *testing.T) {
 	tests := []struct {
 		suffix string
-		layout string
+		format rollfile.CutFormat
 		err    string
 	}{
-		{suffix: "d", layout: rollfile.DayLayout},
-		{suffix: "day", layout: rollfile.DayLayout},
-		{suffix: "h", layout: rollfile.HourLayout},
-		{suffix: "hour", layout: rollfile.HourLayout},
-		{suffix: "s", layout: rollfile.SecondLayout},
-		{suffix: "second", layout: rollfile.SecondLayout},
-		{suffix: "n", layout: rollfile.NanoLayout},
-		{suffix: "nano", layout: rollfile.NanoLayout},
-		{suffix: "Day", layout: rollfile.DayLayout},
-		{suffix: "DAY", layout: rollfile.DayLayout},
-		{suffix: "days", err: "unknown suffix pattern"},
+		{suffix: "d", format: rollfile.DayCut},
+		{suffix: "day", format: rollfile.DayCut},
+		{suffix: "h", format: rollfile.HourCut},
+		{suffix: "hour", format: rollfile.HourCut},
+		{suffix: "Day", format: rollfile.DayCut},
+		{suffix: "DAY", format: rollfile.DayCut},
+		{suffix: "days", err: "unknown cut format"},
 	}
 	for i, tt := range tests {
-		layout, err := suffixToLayout(tt.suffix)
+		format, err := stringToCutFormat(tt.suffix)
 		if !matchError(t, err, tt.err) {
 			t.Errorf("%d: match error: got %v, want %v", i, err, tt.err)
 			continue
 		}
 		if err != nil {
-			t.Logf("%d: suffix to layout: %v", i, err)
+			t.Logf("%d: string to cut format: %v", i, err)
 			continue
 		}
-		if got, want := layout, tt.layout; got != want {
-			t.Errorf("%d: layout: got %v, want %v", i, got, want)
+		if got, want := format, tt.format; got != want {
+			t.Errorf("%d: format: got %v, want %v", i, got, want)
 			continue
 		}
 	}
@@ -100,10 +96,8 @@ func TestNewNewRollFileSink(t *testing.T) {
 	}{
 		{url: ParseTestURL(t, "rfile://workdir/testdata/log/a.log")},
 		{url: ParseTestURL(t, "rfile://workdir2/testdata/log/a.log"), err: "invalid hostname"},
-		{url: ParseTestURL(t, "rfile://workdir/testdata/log/b.log?suffix=hour")},
-		{url: ParseTestURL(t, "rfile://workdir/testdata/log/f.log?suffix=year"), err: "unknown suffix pattern"},
-		{url: ParseTestURL(t, "rfile://workdir/testdata/log/c.log?period=1h")},
-		{url: ParseTestURL(t, "rfile://workdir/testdata/log/c.log?period=1hour"), err: "unknown unit"},
+		{url: ParseTestURL(t, "rfile://workdir/testdata/log/b.log?cut=hour")},
+		{url: ParseTestURL(t, "rfile://workdir/testdata/log/f.log?cut=year"), err: "unknown cut format"},
 		{url: ParseTestURL(t, "rfile://workdir/testdata/log/d.log?maxSeq=10")},
 		{url: ParseTestURL(t, "rfile://workdir/testdata/log/d.log?maxSeq=a"), err: "strconv.Atoi"},
 		{url: ParseTestURL(t, "rfile://workdir/testdata/log/f.log?maxSize=1G")},

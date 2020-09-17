@@ -40,21 +40,13 @@ func parseFilePath(u *url.URL) (string, error) {
 func parseFileOptions(u *url.URL) (opts []rollfile.Option, err error) {
 	params := values(u.Query())
 
-	suffix, ok := params.Get("suffix")
+	cut, ok := params.Get("cut")
 	if ok {
-		layout, err := suffixToLayout(suffix)
+		cutfmt, err := stringToCutFormat(cut)
 		if err != nil {
 			return nil, err
 		}
-		opts = append(opts, rollfile.SetLayout(layout))
-	}
-
-	period, ok, err := params.GetDuration("period")
-	if err != nil {
-		return nil, err
-	}
-	if ok {
-		opts = append(opts, rollfile.SetPeriod(period))
+		opts = append(opts, rollfile.SetCutFormat(cutfmt))
 	}
 
 	maxSeq, ok, err := params.GetInt("maxSeq")
@@ -76,18 +68,16 @@ func parseFileOptions(u *url.URL) (opts []rollfile.Option, err error) {
 	return opts, nil
 }
 
-func suffixToLayout(s string) (string, error) {
+func stringToCutFormat(s string) (rollfile.CutFormat, error) {
 	switch strings.ToLower(s) {
-	case "d", "day":
-		return rollfile.DayLayout, nil
+	case "size":
+		return rollfile.SizeCut, nil
 	case "h", "hour":
-		return rollfile.HourLayout, nil
-	case "s", "second":
-		return rollfile.SecondLayout, nil
-	case "n", "nano":
-		return rollfile.NanoLayout, nil
+		return rollfile.HourCut, nil
+	case "d", "day":
+		return rollfile.DayCut, nil
 	default:
-		return "", fmt.Errorf("unknown suffix pattern %q", s)
+		return "", fmt.Errorf("unknown cut format %q", s)
 	}
 }
 

@@ -9,11 +9,17 @@ import (
 	"time"
 )
 
+var (
+	BufferSize     = 256 * 1024
+	PrintCreateLog = false
+	LayoutPID      = false
+	SeqLimit       = 1000
+	pid            = os.Getpid()
+)
+
 const (
-	DayLayout    = "20060102"
-	HourLayout   = "2006010215"
-	SecondLayout = "20060102-150405"
-	NanoLayout   = "20060102-150405.999999999"
+	dayLayout  = "20060102"
+	hourLayout = "2006010215"
 )
 
 const (
@@ -21,8 +27,23 @@ const (
 	flushInterval = 5 * time.Second
 )
 
-var BufferSize = 256 * 1024
-var pid = os.Getpid()
+// 日志切割模式
+type CutFormat string
+
+// 日志切割模式常量定义
+const (
+	SizeCut CutFormat = "Size"
+	HourCut CutFormat = "Hour"
+	DayCut  CutFormat = "Day"
+)
+
+func isValidCutFormat(format CutFormat) bool {
+	switch format {
+	case SizeCut, HourCut, DayCut:
+		return true
+	}
+	return false
+}
 
 type File struct {
 	mu        sync.Mutex
@@ -35,38 +56,31 @@ type File struct {
 	closed    bool
 	done      chan struct{}
 
-	dir            string
-	name           string
-	layout         string
-	period         time.Duration
-	maxSeq         int
-	maxSize        int
-	printCreateLog bool
-}
-
-func isValidLayout(layout string) bool {
-	switch layout {
-	case "", DayLayout, HourLayout, SecondLayout, NanoLayout:
-		return true
-	}
-	return false
+	dir     string
+	name    string
+	cutFmt  CutFormat
+	maxSeq  int
+	maxSize int
 }
 
 func Open(name string, opts ...Option) (*File, error) {
 	f := &File{
 		dir:     filepath.Dir(name),
 		name:    filepath.Base(name),
-		layout:  "",
-		period:  0,
+		cutFmt:  SizeCut,
 		maxSeq:  0,
 		maxSize: 0,
 	}
 	for _, opt := range opts {
 		opt(f)
 	}
-	if !isValidLayout(f.layout) {
-		return nil, &os.PathError{Op: "open", Path: name, Err: fmt.Errorf("invalid layout %q", f.layout)}
+	if !isValidCutFormat(f.cutFmt) {
+		return nil, &os.PathError{Op: "open", Path: name, Err: fmt.Errorf("invalid cut format %q", f.cutFmt)}
 	}
+	if f.maxSeq > SeqLimit {
+		f.maxSeq = SeqLimit
+	}
+
 	if err := f.init(); err != nil {
 		return nil, &os.PathError{Op: "open", Path: name, Err: err}
 	}
@@ -79,14 +93,118 @@ func (f *File) init() (err error) {
 		return err
 	}
 
-	// 2. 创建文件
-	if err = f.rotate(time.Now()); err != nil {
+	// 2. 打开文件
+	if err = f.open(time.Now()); err != nil {
 		return err
 	}
 
 	// 启动定时协程
 	f.done = make(chan struct{})
 	go f.running()
+
+	return nil
+}
+
+func (f *File) baseName(t time.Time) string {
+	switch f.cutFmt {
+	case SizeCut:
+		return sizeCutFileName(f.name, f.seq)
+	case HourCut:
+		return timeCutFileName(f.name, t, hourLayout)
+	case DayCut:
+		return timeCutFileName(f.name, t, dayLayout)
+	}
+	return sizeCutFileName(f.name, f.seq)
+}
+
+func (f *File) open(t time.Time) error {
+	// 1. 读取 seq
+	f.seq = readLinkSeq(f.dir, f.name)
+	if f.seq < 0 || f.seq >= f.maxSeq {
+		f.seq = 0
+	}
+
+	// 2. 打开文件
+	base := f.baseName(t)
+	file, err := openFile(f.dir, base, f.name)
+	if err != nil {
+		return err
+	}
+	fi, err := file.Stat()
+	if err != nil {
+		file.Close()
+		return err
+	}
+
+	f.file = file
+	f.writer = bufio.NewWriterSize(file, BufferSize)
+	f.size = int(fi.Size())
+	f.createdAt = t
+	f.flushedAt = t
+
+	// 3. 输出文件打开日志
+	if PrintCreateLog && f.size <= 0 {
+		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (f *File) shouldRotate(t time.Time) bool {
+	switch f.cutFmt {
+	case SizeCut:
+		if f.maxSize > 0 && f.size >= f.maxSize {
+			return true
+		}
+		return false
+	case HourCut:
+		if isSamePeriod(t, f.createdAt, time.Hour) {
+			return false
+		}
+		return true
+	case DayCut:
+		if isSamePeriod(t, f.createdAt, 24*time.Hour) {
+			return false
+		}
+		return true
+	}
+	return false
+}
+
+func (f *File) rotate(t time.Time) error {
+	// 1. 关闭原文件
+	if f.file != nil {
+		f.writer.Flush()
+		f.file.Close()
+	}
+
+	// 2. 创建目标文件
+	filename := f.baseName(t)
+	file, err := createFile(f.dir, filename, f.name)
+	if err != nil {
+		return err
+	}
+
+	f.file = file
+	f.writer = bufio.NewWriterSize(file, BufferSize)
+	f.size = 0
+	f.createdAt = t
+	f.flushedAt = t
+	f.seq++
+	if f.seq < 0 || f.seq >= f.maxSeq {
+		f.seq = 0
+	}
+
+	// 3. 输出文件打开日志
+	if PrintCreateLog {
+		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -103,6 +221,18 @@ func (f *File) running() {
 			f.tick()
 		}
 	}
+}
+
+func (f *File) shouldFlush(t time.Time) bool {
+	if t.Sub(f.flushedAt) < flushInterval {
+		return false
+	}
+	return true
+}
+
+func (f *File) flush(t time.Time) error {
+	f.flushedAt = t
+	return f.writer.Flush()
 }
 
 func (f *File) tick() {
@@ -125,63 +255,6 @@ func (f *File) tick() {
 			fmt.Fprintf(os.Stderr, "rollfile.File: rotate file: %v\n", err)
 		}
 	}
-}
-
-func (f *File) shouldFlush(t time.Time) bool {
-	if t.Sub(f.flushedAt) < flushInterval {
-		return false
-	}
-	return true
-}
-
-func (f *File) flush(t time.Time) error {
-	f.flushedAt = t
-	return f.writer.Flush()
-}
-
-func (f *File) shouldRotate(t time.Time) bool {
-	if f.maxSize > 0 && f.size >= f.maxSize {
-		return true
-	}
-	if f.period > 0 && !isSamePeriod(t, f.createdAt, f.period) {
-		return true
-	}
-	return false
-}
-
-func (f *File) rotate(t time.Time) error {
-	// 1. 关闭原文件
-	if f.file != nil {
-		f.writer.Flush()
-		f.file.Close()
-	}
-
-	// 2. 创建目标文件
-	filename := fileName(f.name, pid, f.seq, t, f.layout)
-	file, err := createFile(f.dir, filename, f.name)
-	if err != nil {
-		return err
-	}
-
-	f.file = file
-	f.writer = bufio.NewWriterSize(file, BufferSize)
-	f.size = 0
-	f.createdAt = t
-	f.flushedAt = t
-	f.seq++
-	if f.maxSeq > 0 && f.seq >= f.maxSeq {
-		f.seq = 0
-	}
-
-	// 3. 输出文件创建日志
-	if f.printCreateLog {
-		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func (f *File) wrapErr(op string, err error) error {

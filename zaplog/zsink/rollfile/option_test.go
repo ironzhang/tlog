@@ -2,7 +2,6 @@ package rollfile
 
 import (
 	"testing"
-	"time"
 )
 
 func TestOption(t *testing.T) {
@@ -11,16 +10,8 @@ func TestOption(t *testing.T) {
 		chk func(f *File) bool
 	}{
 		{
-			opt: SetLayout(DayLayout),
-			chk: func(f *File) bool { return f.layout == DayLayout },
-		},
-		{
-			opt: SetPeriod(time.Hour),
-			chk: func(f *File) bool { return f.period == time.Hour },
-		},
-		{
-			opt: SetPeriod(tickInterval / 10),
-			chk: func(f *File) bool { return f.period == tickInterval },
+			opt: SetCutFormat(DayCut),
+			chk: func(f *File) bool { return f.cutFmt == DayCut },
 		},
 		{
 			opt: SetMaxSeq(1),
@@ -29,10 +20,6 @@ func TestOption(t *testing.T) {
 		{
 			opt: SetMaxSize(2),
 			chk: func(f *File) bool { return f.maxSize == 2 },
-		},
-		{
-			opt: PrintCreateLog(),
-			chk: func(f *File) bool { return f.printCreateLog == true },
 		},
 	}
 	for i, tt := range tests {
