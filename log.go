@@ -54,11 +54,13 @@ func init() {
 
 var logging Logger
 
-func SetLogger(l Logger) {
+func SetLogger(l Logger) (old Logger) {
+	old = logging
 	if l == nil {
 		l = nopLogger{}
 	}
 	logging = l
+	return old
 }
 
 func GetLogger() Logger {
