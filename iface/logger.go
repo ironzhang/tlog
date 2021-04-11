@@ -38,3 +38,9 @@ type Logger interface {
 	Printf(depth int, level Level, format string, args ...interface{})
 	Printw(depth int, level Level, message string, kvs ...interface{})
 }
+
+// GetSetLevel 获取设置日志等级接口
+type GetSetLevel interface {
+	GetLevel() Level
+	SetLevel(Level)
+}

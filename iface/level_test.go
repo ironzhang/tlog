@@ -79,3 +79,32 @@ func TestLevelUnmarshalText(t *testing.T) {
 		t.Logf("%d: level: got %v", i, level)
 	}
 }
+
+func TestStringToLevel(t *testing.T) {
+	tests := []struct {
+		text  string
+		level Level
+	}{
+		{text: "debug", level: DEBUG},
+		{text: "info", level: INFO},
+		{text: "warn", level: WARN},
+		{text: "error", level: ERROR},
+		{text: "panic", level: PANIC},
+		{text: "fatal", level: FATAL},
+		{text: "Debug", level: DEBUG},
+		{text: "DEBUG", level: DEBUG},
+		{text: "", level: INFO},
+	}
+	for i, tt := range tests {
+		level, err := StringToLevel(tt.text)
+		if err != nil {
+			t.Errorf("%d: string to level: %v", i, err)
+			continue
+		}
+		if got, want := level, tt.level; got != want {
+			t.Errorf("%d: level: got %v, want %v", i, got, want)
+			continue
+		}
+		t.Logf("%d: level: got %v", i, level)
+	}
+}

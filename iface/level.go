@@ -73,3 +73,9 @@ func (l *Level) unmarshalText(text []byte) bool {
 	}
 	return true
 }
+
+func StringToLevel(s string) (Level, error) {
+	var l Level
+	err := l.UnmarshalText([]byte(s))
+	return l, err
+}
