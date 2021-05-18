@@ -1,21 +1,10 @@
 package rollfile
 
-import "time"
-
 type Option func(*File)
 
-func SetLayout(layout string) Option {
+func SetCutFormat(format CutFormat) Option {
 	return func(f *File) {
-		f.layout = layout
-	}
-}
-
-func SetPeriod(period time.Duration) Option {
-	return func(f *File) {
-		if period < tickInterval {
-			period = tickInterval
-		}
-		f.period = period
+		f.cutFmt = format
 	}
 }
 
@@ -28,11 +17,5 @@ func SetMaxSeq(maxSeq int) Option {
 func SetMaxSize(maxSize int) Option {
 	return func(f *File) {
 		f.maxSize = maxSize
-	}
-}
-
-func PrintCreateLog() Option {
-	return func(f *File) {
-		f.printCreateLog = true
 	}
 }

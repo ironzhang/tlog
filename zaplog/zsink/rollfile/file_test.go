@@ -4,23 +4,21 @@ import (
 	"fmt"
 	"io"
 	"testing"
-	"time"
 )
 
-func TestIsValidLayout(t *testing.T) {
+func TestIsValidCutFormat(t *testing.T) {
 	tests := []struct {
-		layout string
+		format CutFormat
 		valid  bool
 	}{
-		{layout: "", valid: true},
-		{layout: DayLayout, valid: true},
-		{layout: HourLayout, valid: true},
-		{layout: SecondLayout, valid: true},
-		{layout: NanoLayout, valid: true},
-		{layout: "20060103", valid: false},
+		{format: "", valid: false},
+		{format: SizeCut, valid: true},
+		{format: HourCut, valid: true},
+		{format: DayCut, valid: true},
+		{format: "day", valid: false},
 	}
 	for i, tt := range tests {
-		valid := isValidLayout(tt.layout)
+		valid := isValidCutFormat(tt.format)
 		if got, want := valid, tt.valid; got != want {
 			t.Errorf("%d: valid: got %v, want %v", i, got, want)
 			continue
@@ -29,7 +27,7 @@ func TestIsValidLayout(t *testing.T) {
 }
 
 func TestFileTick(t *testing.T) {
-	f, err := Open("./testdata/test_file_tick/file.log")
+	f, err := Open("./testdata/test_file_tick/file.log", SetMaxSeq(2))
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
@@ -41,11 +39,6 @@ func TestFileTick(t *testing.T) {
 	f.maxSize = 1
 	f.size = 1
 	f.tick()
-
-	f.maxSize = 0
-	f.period = time.Second
-	f.createdAt = f.createdAt.Add(-time.Second)
-	f.tick()
 }
 
 func PrintTestData(t *testing.T, w io.Writer, n int, s string) {
@@ -55,9 +48,6 @@ func PrintTestData(t *testing.T, w io.Writer, n int, s string) {
 			t.Errorf("Fprint: %v", err)
 		}
 	}
-}
-
-func TestFileOpen(t *testing.T) {
 }
 
 func TestFileWrite(t *testing.T) {
@@ -113,19 +103,18 @@ func TestFileClose(t *testing.T) {
 	}
 }
 
-func TestFileSetLayout(t *testing.T) {
+func TestFileSetCutFormat(t *testing.T) {
 	tests := []struct {
 		name   string
-		layout string
+		format CutFormat
 	}{
-		{name: "1.log", layout: ""},
-		{name: "2.log", layout: DayLayout},
-		{name: "3.log", layout: HourLayout},
-		{name: "4.log", layout: SecondLayout},
-		{name: "5.log", layout: NanoLayout},
+		{name: "1.log", format: SizeCut},
+		{name: "2.log", format: HourCut},
+		{name: "3.log", format: DayCut},
+		//{name: "4.log", format: ""},
 	}
 	for i, tt := range tests {
-		f, err := Open("./testdata/test_file_set_layout/"+tt.name, SetLayout(tt.layout))
+		f, err := Open("./testdata/test_file_set_cut_format/"+tt.name, SetCutFormat(tt.format))
 		if err != nil {
 			t.Errorf("%d: open: %v", i, err)
 			continue
@@ -133,17 +122,6 @@ func TestFileSetLayout(t *testing.T) {
 		PrintTestData(t, f, 1, "Hello, world\n")
 		f.Close()
 	}
-}
-
-func TestFileSetPeriod(t *testing.T) {
-	f, err := Open("./testdata/test_file_period/file.log", SetPeriod(time.Second))
-	if err != nil {
-		t.Fatalf("open: %v", err)
-	}
-	defer f.Close()
-
-	PrintTestData(t, f, 1024, "Hello, world\n")
-	//time.Sleep(2 * time.Second)
 }
 
 func TestFileSetMaxSeq(t *testing.T) {
@@ -167,7 +145,8 @@ func TestFileSetMaxSize(t *testing.T) {
 }
 
 func TestFilePrintCreateLog(t *testing.T) {
-	f, err := Open("./testdata/test_file_print_create_log/file.log", PrintCreateLog())
+	PrintCreateLog = true
+	f, err := Open("./testdata/test_file_print_create_log/file.log")
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
