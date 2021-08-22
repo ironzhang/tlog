@@ -463,12 +463,12 @@ func NewDevelopmentConfig() Config {
 		Level: iface.DEBUG,
 		Cores: []CoreConfig{
 			{
-				Name:     "Stderr",
+				Name:     "Stdout",
 				Encoding: "console",
 				Encoder:  NewConsoleEncoderConfig(),
 				MinLevel: iface.DEBUG,
 				MaxLevel: iface.FATAL,
-				URLs:     []string{"stderr"},
+				URLs:     []string{"stdout"},
 			},
 		},
 		Loggers: []LoggerConfig{
@@ -476,7 +476,7 @@ func NewDevelopmentConfig() Config {
 				Name:            "",
 				DisableCaller:   false,
 				StacktraceLevel: DisableStacktrace,
-				Cores:           []string{"Stderr"},
+				Cores:           []string{"Stdout"},
 			},
 		},
 	}
