@@ -155,25 +155,39 @@ func (f *File) open(t time.Time) error {
 	return nil
 }
 
-func (f *File) shouldRotate(t time.Time) bool {
-	switch f.cutFmt {
-	case SizeCut:
-		if f.maxSize > 0 && f.size >= f.maxSize {
-			return true
-		}
-		return false
-	case HourCut:
-		if isSamePeriod(t, f.createdAt, time.Hour) {
-			return false
-		}
-		return true
-	case DayCut:
-		if isSamePeriod(t, f.createdAt, 24*time.Hour) {
-			return false
-		}
-		return true
+func (f *File) rotate(t time.Time) error {
+	// 1. 创建目标文件
+	filename := f.baseName(t)
+	file, err := createFile(f.dir, filename, f.name)
+	if err != nil {
+		return err
 	}
-	return false
+
+	// 2. 关闭原文件
+	if f.file != nil {
+		f.writer.Flush()
+		f.file.Close()
+	}
+
+	f.file = file
+	f.writer = bufio.NewWriterSize(file, BufferSize)
+	f.size = 0
+	f.createdAt = t
+	f.flushedAt = t
+	f.seq++
+	if f.seq < 0 || f.seq >= f.maxSeq {
+		f.seq = 0
+	}
+
+	// 3. 输出文件打开日志
+	if PrintCreateLog {
+		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (f *File) check(t time.Time) error {
@@ -225,41 +239,6 @@ func (f *File) check(t time.Time) error {
 	return nil
 }
 
-func (f *File) rotate(t time.Time) error {
-	// 1. 创建目标文件
-	filename := f.baseName(t)
-	file, err := createFile(f.dir, filename, f.name)
-	if err != nil {
-		return err
-	}
-
-	// 2. 关闭原文件
-	if f.file != nil {
-		f.writer.Flush()
-		f.file.Close()
-	}
-
-	f.file = file
-	f.writer = bufio.NewWriterSize(file, BufferSize)
-	f.size = 0
-	f.createdAt = t
-	f.flushedAt = t
-	f.seq++
-	if f.seq < 0 || f.seq >= f.maxSeq {
-		f.seq = 0
-	}
-
-	// 3. 输出文件打开日志
-	if PrintCreateLog {
-		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (f *File) running() {
 	t := time.NewTicker(tickInterval)
 	defer t.Stop()
@@ -279,6 +258,27 @@ func (f *File) shouldFlush(t time.Time) bool {
 		return false
 	}
 	return true
+}
+
+func (f *File) shouldRotate(t time.Time) bool {
+	switch f.cutFmt {
+	case SizeCut:
+		if f.maxSize > 0 && f.size >= f.maxSize {
+			return true
+		}
+		return false
+	case HourCut:
+		if isSamePeriod(t, f.createdAt, time.Hour) {
+			return false
+		}
+		return true
+	case DayCut:
+		if isSamePeriod(t, f.createdAt, 24*time.Hour) {
+			return false
+		}
+		return true
+	}
+	return false
 }
 
 func (f *File) shouldCheck(t time.Time) bool {
