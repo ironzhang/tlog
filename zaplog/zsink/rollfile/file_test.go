@@ -3,7 +3,10 @@ package rollfile
 import (
 	"fmt"
 	"io"
+	"os"
+	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestIsValidCutFormat(t *testing.T) {
@@ -47,6 +50,56 @@ func PrintTestData(t *testing.T, w io.Writer, n int, s string) {
 		if err != nil {
 			t.Errorf("Fprint: %v", err)
 		}
+	}
+}
+
+func TestFileCheck(t *testing.T) {
+	fileName := "./testdata/test_file_check/file.log"
+	f, err := Open(fileName)
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer f.Close()
+
+	data := []byte("hello, world")
+	n, err := f.Write(data)
+	if err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	if got, want := n, len(data); got != want {
+		t.Errorf("n: got %d, want %d", got, want)
+	}
+
+	time.Sleep(2 * time.Second)
+
+	// 删除文件及 link
+	file := fileName
+	link := filepath.Join(f.dir, f.name)
+
+	os.Remove(file)
+	os.Remove(link)
+
+	time.Sleep(12 * time.Second)
+	if !fileExist(fileName) {
+		t.Fatalf("file is not exist %s", fileName)
+	}
+	if !fileExist(link) {
+		t.Fatalf("link is not exist %s", link)
+	}
+
+	// 只删除 link
+	os.Remove(link)
+	time.Sleep(12 * time.Second)
+	if !fileExist(link) {
+		t.Fatalf("link is not exist %s", link)
+	}
+
+	n, err = f.Write(data)
+	if err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	if got, want := n, len(data); got != want {
+		t.Errorf("n: got %d, want %d", got, want)
 	}
 }
 

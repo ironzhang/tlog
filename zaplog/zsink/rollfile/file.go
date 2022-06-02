@@ -25,6 +25,7 @@ const (
 const (
 	tickInterval  = 1 * time.Second
 	flushInterval = 5 * time.Second
+	checkInterval = 10 * time.Second
 )
 
 // 日志切割模式
@@ -53,6 +54,7 @@ type File struct {
 	size      int
 	createdAt time.Time
 	flushedAt time.Time
+	checkAt   time.Time
 	closed    bool
 	done      chan struct{}
 
@@ -174,18 +176,67 @@ func (f *File) shouldRotate(t time.Time) bool {
 	return false
 }
 
-func (f *File) rotate(t time.Time) error {
-	// 1. 关闭原文件
-	if f.file != nil {
-		f.writer.Flush()
-		f.file.Close()
+func (f *File) check(t time.Time) error {
+	f.checkAt = t
+
+	filename := f.baseName(t)
+	file := filepath.Join(f.dir, filename)
+	link := filepath.Join(f.dir, f.name)
+
+	needLink := false
+	if !fileExist(link) {
+		needLink = true
 	}
 
-	// 2. 创建目标文件
+	if !fileExist(file) {
+		needLink = false
+
+		// 1. 创建新文件
+		file, err := createFile(f.dir, filename, f.name)
+		if err != nil {
+			return err
+		}
+
+		// 2. 关闭原文件
+		if f.file != nil {
+			f.file.Close()
+		}
+
+		f.file = file
+		f.writer = bufio.NewWriterSize(file, BufferSize)
+		f.size = 0
+		f.createdAt = t
+		f.flushedAt = t
+
+		// 3. 输出文件打开日志
+		if PrintCreateLog {
+			f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	if needLink {
+		os.Remove(link)
+		os.Symlink(filename, link)
+	}
+
+	return nil
+}
+
+func (f *File) rotate(t time.Time) error {
+	// 1. 创建目标文件
 	filename := f.baseName(t)
 	file, err := createFile(f.dir, filename, f.name)
 	if err != nil {
 		return err
+	}
+
+	// 2. 关闭原文件
+	if f.file != nil {
+		f.writer.Flush()
+		f.file.Close()
 	}
 
 	f.file = file
@@ -230,9 +281,24 @@ func (f *File) shouldFlush(t time.Time) bool {
 	return true
 }
 
+func (f *File) shouldCheck(t time.Time) bool {
+	if t.Sub(f.checkAt) < checkInterval {
+		return false
+	}
+	return true
+}
+
 func (f *File) flush(t time.Time) error {
 	f.flushedAt = t
 	return f.writer.Flush()
+}
+
+func fileExist(name string) bool {
+	_, err := os.Stat(name)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func (f *File) tick() {
@@ -242,14 +308,21 @@ func (f *File) tick() {
 	var err error
 	now := time.Now()
 
-	// 1. 刷新缓冲
+	// 1. 检测文件是否存在
+	if f.shouldCheck(now) {
+		if err = f.check(now); err != nil {
+			fmt.Fprintf(os.Stderr, "rollfile.File: check file: %v\n", err)
+		}
+	}
+
+	// 2. 刷新缓冲
 	if f.shouldFlush(now) {
 		if err = f.flush(now); err != nil {
 			fmt.Fprintf(os.Stderr, "rollfile.File: flush file: %v\n", err)
 		}
 	}
 
-	// 2. 滚动文件
+	// 3. 滚动文件
 	if f.shouldRotate(now) {
 		if err = f.rotate(now); err != nil {
 			fmt.Fprintf(os.Stderr, "rollfile.File: rotate file: %v\n", err)

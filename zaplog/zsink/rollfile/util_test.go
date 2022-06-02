@@ -102,14 +102,6 @@ func TestParseSeq(t *testing.T) {
 	}
 }
 
-func fileExist(name string) bool {
-	_, err := os.Stat(name)
-	if err != nil {
-		return false
-	}
-	return true
-}
-
 func TestReadLink(t *testing.T) {
 	dir := "testdata/test_read_link"
 	os.MkdirAll(dir, os.ModePerm)
