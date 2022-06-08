@@ -25,7 +25,7 @@ const (
 var (
 	tickInterval  = 1 * time.Second
 	flushInterval = 5 * time.Second
-	checkInterval = 10 * time.Second
+	touchInterval = 10 * time.Second
 )
 
 // 日志切割模式
@@ -176,9 +176,6 @@ func (f *File) create(t time.Time) error {
 	f.createdAt = t
 	f.flushedAt = t
 	f.touchedAt = t
-	if f.seq < 0 || f.seq >= f.maxSeq {
-		f.seq = 0
-	}
 
 	// 3. 输出文件打开日志
 	if PrintCreateLog {
@@ -219,6 +216,9 @@ func (f *File) rotate(t time.Time) error {
 	}
 
 	f.seq++
+	if f.seq < 0 || f.seq >= f.maxSeq {
+		f.seq = 0
+	}
 	return nil
 }
 
@@ -235,7 +235,7 @@ func (f *File) flush(t time.Time) error {
 }
 
 func (f *File) shouldTouch(t time.Time) bool {
-	if t.Sub(f.touchedAt) < checkInterval {
+	if t.Sub(f.touchedAt) < touchInterval {
 		return false
 	}
 	return true

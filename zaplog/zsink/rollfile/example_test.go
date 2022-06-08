@@ -28,7 +28,7 @@ func ExampleFile() {
 
 func TestMain(m *testing.M) {
 	// 让单测时间变短
-	flushInterval, checkInterval = time.Second, time.Second
+	flushInterval, touchInterval = time.Second, time.Second
 
 	os.RemoveAll("./testdata")
 	m.Run()
