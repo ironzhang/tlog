@@ -188,6 +188,18 @@ func (f *File) create(t time.Time) error {
 	return nil
 }
 
+func (f *File) shouldFlush(t time.Time) bool {
+	if t.Sub(f.flushedAt) < flushInterval {
+		return false
+	}
+	return true
+}
+
+func (f *File) flush(t time.Time) error {
+	f.flushedAt = t
+	return f.writer.Flush()
+}
+
 func (f *File) shouldRotate(t time.Time) bool {
 	switch f.cutFmt {
 	case SizeCut:
@@ -222,18 +234,6 @@ func (f *File) rotate(t time.Time) error {
 	return nil
 }
 
-func (f *File) shouldFlush(t time.Time) bool {
-	if t.Sub(f.flushedAt) < flushInterval {
-		return false
-	}
-	return true
-}
-
-func (f *File) flush(t time.Time) error {
-	f.flushedAt = t
-	return f.writer.Flush()
-}
-
 func (f *File) shouldTouch(t time.Time) bool {
 	if t.Sub(f.touchedAt) < touchInterval {
 		return false
@@ -246,7 +246,6 @@ func (f *File) touch(t time.Time) error {
 
 	filename := f.baseName(t)
 	file := filepath.Join(f.dir, filename)
-
 	if !fileExist(file) {
 		err := f.create(t)
 		if err != nil {
@@ -257,7 +256,6 @@ func (f *File) touch(t time.Time) error {
 	// 创建 link 文件
 	link := filepath.Join(f.dir, f.name)
 	if !fileExist(link) {
-		os.Remove(link)
 		os.Symlink(filename, link)
 	}
 	return nil
@@ -270,24 +268,24 @@ func (f *File) tick() {
 	var err error
 	now := time.Now()
 
-	// 1. 检测文件是否存在
-	if f.shouldTouch(now) {
-		if err = f.touch(now); err != nil {
-			fmt.Fprintf(os.Stderr, "rollfile.File: touch file: %v\n", err)
-		}
-	}
-
-	// 2. 刷新缓冲
+	// 1. 刷新缓冲
 	if f.shouldFlush(now) {
 		if err = f.flush(now); err != nil {
 			fmt.Fprintf(os.Stderr, "rollfile.File: flush file: %v\n", err)
 		}
 	}
 
-	// 3. 滚动文件
+	// 2. 滚动文件
 	if f.shouldRotate(now) {
 		if err = f.rotate(now); err != nil {
 			fmt.Fprintf(os.Stderr, "rollfile.File: rotate file: %v\n", err)
+		}
+	}
+
+	// 3. 检测文件是否存在
+	if f.shouldTouch(now) {
+		if err = f.touch(now); err != nil {
+			fmt.Fprintf(os.Stderr, "rollfile.File: touch file: %v\n", err)
 		}
 	}
 }
