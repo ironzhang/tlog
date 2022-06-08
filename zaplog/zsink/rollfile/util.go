@@ -79,3 +79,11 @@ func openFile(dir, filename, symlink string) (f *os.File, err error) {
 func isSamePeriod(t1, t2 time.Time, d time.Duration) bool {
 	return t1.Truncate(d) == t2.Truncate(d)
 }
+
+func fileExist(name string) bool {
+	_, err := os.Stat(name)
+	if err != nil {
+		return false
+	}
+	return true
+}

@@ -53,7 +53,7 @@ func PrintTestData(t *testing.T, w io.Writer, n int, s string) {
 	}
 }
 
-func TestFileCheck(t *testing.T) {
+func TestFileDeleteCheck(t *testing.T) {
 	fileName := "./testdata/test_file_check/file.log"
 	f, err := Open(fileName)
 	if err != nil {
