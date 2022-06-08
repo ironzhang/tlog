@@ -53,8 +53,8 @@ func PrintTestData(t *testing.T, w io.Writer, n int, s string) {
 	}
 }
 
-func TestFileDeleteCheck(t *testing.T) {
-	fileName := "./testdata/test_file_check/file.log"
+func TestFileTouch(t *testing.T) {
+	fileName := "./testdata/test_file_touch/file.log"
 	f, err := Open(fileName)
 	if err != nil {
 		t.Fatalf("open: %v", err)
@@ -70,7 +70,7 @@ func TestFileDeleteCheck(t *testing.T) {
 		t.Errorf("n: got %d, want %d", got, want)
 	}
 
-	time.Sleep(2 * time.Second)
+	time.Sleep(time.Second)
 
 	// 删除文件及 link
 	file := fileName
@@ -79,7 +79,7 @@ func TestFileDeleteCheck(t *testing.T) {
 	os.Remove(file)
 	os.Remove(link)
 
-	time.Sleep(12 * time.Second)
+	time.Sleep(2 * time.Second)
 	if !fileExist(fileName) {
 		t.Fatalf("file is not exist %s", fileName)
 	}
@@ -89,7 +89,7 @@ func TestFileDeleteCheck(t *testing.T) {
 
 	// 只删除 link
 	os.Remove(link)
-	time.Sleep(12 * time.Second)
+	time.Sleep(2 * time.Second)
 	if !fileExist(link) {
 		t.Fatalf("link is not exist %s", link)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 )
 
 func ExampleFile() {
@@ -26,6 +27,9 @@ func ExampleFile() {
 }
 
 func TestMain(m *testing.M) {
+	// 让单测时间变短
+	flushInterval, checkInterval = time.Second, time.Second
+
 	os.RemoveAll("./testdata")
 	m.Run()
 	os.RemoveAll("./testdata")

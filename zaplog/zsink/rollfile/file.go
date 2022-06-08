@@ -22,7 +22,7 @@ const (
 	hourLayout = "2006010215"
 )
 
-const (
+var (
 	tickInterval  = 1 * time.Second
 	flushInterval = 5 * time.Second
 	checkInterval = 10 * time.Second
@@ -54,7 +54,7 @@ type File struct {
 	size      int
 	createdAt time.Time
 	flushedAt time.Time
-	checkedAt time.Time
+	touchedAt time.Time
 	closed    bool
 	done      chan struct{}
 
@@ -127,48 +127,25 @@ func (f *File) open(t time.Time) error {
 	}
 
 	// 2. 打开文件
-	base := f.baseName(t)
-	file, err := openFile(f.dir, base, f.name)
+	return f.create(t)
+}
+
+func (f *File) create(t time.Time) error {
+	// 1. 创建目标文件
+	filename := f.baseName(t)
+	file, err := openFile(f.dir, filename, f.name)
 	if err != nil {
 		return err
 	}
+
+	// 2. 检测文件是否存在
 	fi, err := file.Stat()
 	if err != nil {
 		file.Close()
 		return err
 	}
 
-	f.file = file
-	f.writer = bufio.NewWriterSize(file, BufferSize)
-	f.size = int(fi.Size())
-	f.createdAt = t
-	f.flushedAt = t
-	f.checkedAt = t
-
-	// 3. 输出文件打开日志
-	if PrintCreateLog && f.size <= 0 {
-		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (f *File) rotate(t time.Time) error {
-	return f.recreate(t, true)
-}
-
-func (f *File) recreate(t time.Time, increaseSeq bool) error {
-	// 1. 创建目标文件
-	filename := f.baseName(t)
-	file, err := createFile(f.dir, filename, f.name)
-	if err != nil {
-		return err
-	}
-
-	// 2. 关闭原文件
+	// 3. 关闭原文件
 	if f.file != nil {
 		f.writer.Flush()
 		f.file.Close()
@@ -176,13 +153,10 @@ func (f *File) recreate(t time.Time, increaseSeq bool) error {
 
 	f.file = file
 	f.writer = bufio.NewWriterSize(file, BufferSize)
-	f.size = 0
+	f.size = int(fi.Size())
 	f.createdAt = t
 	f.flushedAt = t
-	f.checkedAt = t
-	if increaseSeq {
-		f.seq++
-	}
+	f.touchedAt = t
 	if f.seq < 0 || f.seq >= f.maxSeq {
 		f.seq = 0
 	}
@@ -198,14 +172,29 @@ func (f *File) recreate(t time.Time, increaseSeq bool) error {
 	return nil
 }
 
-func (f *File) checkAndTouch(t time.Time) error {
-	f.checkedAt = t
+func (f *File) flush(t time.Time) error {
+	f.flushedAt = t
+	return f.writer.Flush()
+}
+
+func (f *File) rotate(t time.Time) error {
+	err := f.create(t)
+	if err != nil {
+		return err
+	}
+
+	f.seq++
+	return nil
+}
+
+func (f *File) touch(t time.Time) error {
+	f.touchedAt = t
 
 	filename := f.baseName(t)
 	file := filepath.Join(f.dir, filename)
 
 	if !fileExist(file) {
-		err := f.recreate(t, false)
+		err := f.create(t)
 		if err != nil {
 			return err
 		}
@@ -218,20 +207,6 @@ func (f *File) checkAndTouch(t time.Time) error {
 		os.Symlink(filename, link)
 	}
 	return nil
-}
-
-func (f *File) running() {
-	t := time.NewTicker(tickInterval)
-	defer t.Stop()
-
-	for {
-		select {
-		case <-f.done:
-			return
-		case <-t.C:
-			f.tick()
-		}
-	}
 }
 
 func (f *File) shouldFlush(t time.Time) bool {
@@ -262,16 +237,11 @@ func (f *File) shouldRotate(t time.Time) bool {
 	return false
 }
 
-func (f *File) shouldCheck(t time.Time) bool {
-	if t.Sub(f.checkedAt) < checkInterval {
+func (f *File) shouldTouch(t time.Time) bool {
+	if t.Sub(f.touchedAt) < checkInterval {
 		return false
 	}
 	return true
-}
-
-func (f *File) flush(t time.Time) error {
-	f.flushedAt = t
-	return f.writer.Flush()
 }
 
 func (f *File) tick() {
@@ -282,9 +252,9 @@ func (f *File) tick() {
 	now := time.Now()
 
 	// 1. 检测文件是否存在
-	if f.shouldCheck(now) {
-		if err = f.checkAndTouch(now); err != nil {
-			fmt.Fprintf(os.Stderr, "rollfile.File: checkAndTouch file: %v\n", err)
+	if f.shouldTouch(now) {
+		if err = f.touch(now); err != nil {
+			fmt.Fprintf(os.Stderr, "rollfile.File: touch file: %v\n", err)
 		}
 	}
 
@@ -299,6 +269,20 @@ func (f *File) tick() {
 	if f.shouldRotate(now) {
 		if err = f.rotate(now); err != nil {
 			fmt.Fprintf(os.Stderr, "rollfile.File: rotate file: %v\n", err)
+		}
+	}
+}
+
+func (f *File) running() {
+	t := time.NewTicker(tickInterval)
+	defer t.Stop()
+
+	for {
+		select {
+		case <-f.done:
+			return
+		case <-t.C:
+			f.tick()
 		}
 	}
 }
