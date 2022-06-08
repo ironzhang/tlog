@@ -126,26 +126,49 @@ func (f *File) open(t time.Time) error {
 		f.seq = 0
 	}
 
-	// 2. 打开文件
-	return f.create(t)
-}
-
-func (f *File) create(t time.Time) error {
-	// 1. 创建目标文件
+	// 2. 打开
 	filename := f.baseName(t)
 	file, err := openFile(f.dir, filename, f.name)
 	if err != nil {
 		return err
 	}
 
-	// 2. 检测文件是否存在
 	fi, err := file.Stat()
 	if err != nil {
 		file.Close()
 		return err
 	}
 
-	// 3. 关闭原文件
+	f.file = file
+	f.writer = bufio.NewWriterSize(file, BufferSize)
+	f.size = int(fi.Size())
+	f.createdAt = t
+	f.flushedAt = t
+	f.touchedAt = t
+	if f.seq < 0 || f.seq >= f.maxSeq {
+		f.seq = 0
+	}
+
+	// 4. 输出文件打开日志
+	if PrintCreateLog && f.size <= 0 {
+		f.size, err = fmt.Fprintf(f.file, "Log file created at: %s\n", t.Format(time.RFC3339Nano))
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (f *File) create(t time.Time) error {
+	// 1. 创建目标文件
+	filename := f.baseName(t)
+	file, err := createFile(f.dir, filename, f.name)
+	if err != nil {
+		return err
+	}
+
+	// 2. 关闭原文件
 	if f.file != nil {
 		f.writer.Flush()
 		f.file.Close()
@@ -153,7 +176,7 @@ func (f *File) create(t time.Time) error {
 
 	f.file = file
 	f.writer = bufio.NewWriterSize(file, BufferSize)
-	f.size = int(fi.Size())
+	f.size = 0
 	f.createdAt = t
 	f.flushedAt = t
 	f.touchedAt = t
