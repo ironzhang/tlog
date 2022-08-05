@@ -306,6 +306,18 @@ func TestIsSamePeriod(t *testing.T) {
 			period: 24 * time.Hour,
 			same:   true,
 		},
+		{
+			t1:     time.Date(2019, 12, 6, 0, 0, 0, 0, time.Local),
+			t2:     time.Date(2019, 12, 6, 7, 29, 2, 3, time.Local),
+			period: 24 * time.Hour,
+			same:   true,
+		},
+		{
+			t1:     time.Date(2019, 12, 5, 23, 59, 59, 0, time.Local),
+			t2:     time.Date(2019, 12, 6, 0, 0, 0, 0, time.Local),
+			period: 24 * time.Hour,
+			same:   false,
+		},
 	}
 	for i, tt := range tests {
 		same := isSamePeriod(tt.t1, tt.t2, tt.period)
