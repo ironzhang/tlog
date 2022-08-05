@@ -77,7 +77,9 @@ func openFile(dir, filename, symlink string) (f *os.File, err error) {
 }
 
 func isSamePeriod(t1, t2 time.Time, d time.Duration) bool {
-	return t1.Truncate(d) == t2.Truncate(d)
+	_, offset := t1.Zone()
+	zone := time.Duration(offset) * time.Second
+	return t1.Add(zone).Truncate(d) == t2.Add(zone).Truncate(d)
 }
 
 func fileExist(name string) bool {
