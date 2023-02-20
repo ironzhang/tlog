@@ -57,12 +57,18 @@ func main() {
 }
 
 func RunTestCase() {
+	n := 0
+	a := strings.Repeat("a", 100)
+	b := strings.Repeat("b", 100)
+
 	for i := 0; i < 10; i++ {
-		a := strings.Repeat("a", 100)
-		b := strings.Repeat("b", 100)
-		tlog.Debug(a)
-		time.Sleep(time.Second)
-		tlog.Debug(b)
+		tlog.Debugf("%d: %s", n, a)
+		n++
+
+		tlog.Debugf("%d: %s", n, b)
+		n++
+
+		time.Sleep(20 * time.Second)
 	}
 
 	time.Sleep(time.Hour)
