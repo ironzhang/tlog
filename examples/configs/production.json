@@ -1,4 +1,5 @@
 {
+	"level": "debug",
 	"cores": [
 		{
 			"name": "Debug",
@@ -16,7 +17,7 @@
 			"minLevel": "debug",
 			"maxLevel": "debug",
 			"urls": [
-				"rfile://workdir/log/debug.log"
+				"rfile://workdir/log/debug.log?maxSize=100B&maxSeq=20"
 			]
 		},
 		{

@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"strings"
+	"time"
 
 	"gopkg.in/yaml.v2"
 
@@ -50,7 +52,20 @@ func main() {
 
 	tlog.SetLogger(logger)
 
-	run()
+	//run()
+	RunTestCase()
+}
+
+func RunTestCase() {
+	for i := 0; i < 10; i++ {
+		a := strings.Repeat("a", 100)
+		b := strings.Repeat("b", 100)
+		tlog.Debug(a)
+		time.Sleep(time.Second)
+		tlog.Debug(b)
+	}
+
+	time.Sleep(time.Hour)
 }
 
 func run() {
