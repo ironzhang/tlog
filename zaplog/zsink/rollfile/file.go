@@ -222,14 +222,14 @@ func (f *File) shouldRotate(t time.Time) bool {
 }
 
 func (f *File) rotate(t time.Time) error {
-	err := f.create(t)
-	if err != nil {
-		return err
-	}
-
 	f.seq++
 	if f.seq < 0 || f.seq >= f.maxSeq {
 		f.seq = 0
+	}
+
+	err := f.create(t)
+	if err != nil {
+		return err
 	}
 	return nil
 }
