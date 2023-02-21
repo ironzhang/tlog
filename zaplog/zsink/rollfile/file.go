@@ -222,6 +222,7 @@ func (f *File) shouldRotate(t time.Time) bool {
 }
 
 func (f *File) rotate(t time.Time) error {
+	old := f.seq
 	f.seq++
 	if f.seq < 0 || f.seq >= f.maxSeq {
 		f.seq = 0
@@ -229,6 +230,7 @@ func (f *File) rotate(t time.Time) error {
 
 	err := f.create(t)
 	if err != nil {
+		f.seq = old
 		return err
 	}
 	return nil
