@@ -457,7 +457,7 @@ func TestDurationEncoder(t *testing.T) {
 func TestCallerEncoder(t *testing.T) {
 	caller := zapcore.EntryCaller{
 		Defined: true,
-		File:    "git.xiaojukeji.com/pearls/tlog/zaplog/config_test.go",
+		File:    "github.com/ironzhang/tlog/zaplog/config_test.go",
 		Line:    460,
 	}
 	tests := []struct {

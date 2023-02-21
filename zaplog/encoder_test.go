@@ -16,7 +16,7 @@ var (
 		Message: "hello, world",
 		Caller: zapcore.EntryCaller{
 			Defined: true,
-			File:    "git.xiaojukeji.com/pearls/tlog/zaplog/encoder_test.go",
+			File:    "github.com/ironzhang/tlog/zaplog/encoder_test.go",
 			Line:    16,
 		},
 	}

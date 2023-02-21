@@ -9,8 +9,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"git.xiaojukeji.com/pearls/tlog"
-	"git.xiaojukeji.com/pearls/tlog/zaplog"
+	"github.com/ironzhang/tlog"
+	"github.com/ironzhang/tlog/zaplog"
 )
 
 func LoadConfig(file string) (conf zaplog.Config, err error) {

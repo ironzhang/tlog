@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"git.xiaojukeji.com/pearls/tlog/zaplog/zsink/rollfile"
+	"github.com/ironzhang/tlog/zaplog/zsink/rollfile"
 )
 
 func ParseTestURL(t *testing.T, rawurl string) *url.URL {

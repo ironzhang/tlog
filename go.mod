@@ -1,4 +1,4 @@
-module git.xiaojukeji.com/pearls/tlog
+module github.com/ironzhang/tlog
 
 go 1.13
 

@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"git.xiaojukeji.com/pearls/tlog/zaplog/zsink/rollfile"
+	"github.com/ironzhang/tlog/zaplog/zsink/rollfile"
 )
 
 func newRollFileSink(u *url.URL) (zap.Sink, error) {

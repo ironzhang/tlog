@@ -7,8 +7,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"git.xiaojukeji.com/pearls/tlog/iface"
-	"git.xiaojukeji.com/pearls/tlog/zaplog/zbase"
+	"github.com/ironzhang/tlog/iface"
+	"github.com/ironzhang/tlog/zaplog/zbase"
 )
 
 type ContextHook interface {

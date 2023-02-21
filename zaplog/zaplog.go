@@ -10,9 +10,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"git.xiaojukeji.com/pearls/tlog/iface"
-	"git.xiaojukeji.com/pearls/tlog/zaplog/zbase"
-	"git.xiaojukeji.com/pearls/tlog/zaplog/zlogger"
+	"github.com/ironzhang/tlog/iface"
+	"github.com/ironzhang/tlog/zaplog/zbase"
+	"github.com/ironzhang/tlog/zaplog/zlogger"
 )
 
 type ContextHook = zlogger.ContextHook

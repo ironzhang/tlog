@@ -3,8 +3,8 @@ package tlog
 import (
 	"context"
 
-	"git.xiaojukeji.com/pearls/tlog/iface"
-	"git.xiaojukeji.com/pearls/tlog/zaplog"
+	"github.com/ironzhang/tlog/iface"
+	"github.com/ironzhang/tlog/zaplog"
 )
 
 type Level = iface.Level

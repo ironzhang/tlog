@@ -4,7 +4,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	_ "git.xiaojukeji.com/pearls/tlog/zaplog/zsink"
+	_ "github.com/ironzhang/tlog/zaplog/zsink"
 )
 
 func newSinks(urls []string) (zap.Sink, error) {

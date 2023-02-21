@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap/zapcore"
 
-	"git.xiaojukeji.com/pearls/tlog/iface"
+	"github.com/ironzhang/tlog/iface"
 )
 
 var (

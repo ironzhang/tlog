@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"git.xiaojukeji.com/pearls/tlog"
-	"git.xiaojukeji.com/pearls/tlog/zaplog"
+	"github.com/ironzhang/tlog"
+	"github.com/ironzhang/tlog/zaplog"
 )
 
 func ContextHook(ctx context.Context) (args []interface{}) {
