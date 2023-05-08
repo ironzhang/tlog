@@ -25,24 +25,22 @@ func logLevel(w http.ResponseWriter, r *http.Request) {
 
 func getLogLevel(w http.ResponseWriter, r *http.Request) {
 	level := "unknown"
-	status := http.StatusOK
 	if gs, ok := tlog.GetLogger().(iface.GetSetLevel); ok {
 		level = gs.GetLevel().String()
-		status = http.StatusInternalServerError
 	}
-	writeTextResponse(w, status, level)
+	writeTextResponse(w, http.StatusOK, level)
 }
 
 func setLogLevel(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil || len(body) == 0 {
-		writeTextResponse(w, http.StatusInternalServerError, "Unexpected Request Body")
+		writeTextResponse(w, http.StatusBadRequest, "Unexpected Request Body")
 		return
 	}
 
 	level, err := iface.StringToLevel(string(body))
 	if err != nil {
-		writeTextResponse(w, http.StatusInternalServerError, "Unknown Log Level")
+		writeTextResponse(w, http.StatusBadRequest, "Unknown Log Level")
 		return
 	}
 
