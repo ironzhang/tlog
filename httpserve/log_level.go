@@ -35,7 +35,7 @@ func getLogLevel(w http.ResponseWriter, r *http.Request) {
 
 func setLogLevel(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
-	if err != nil {
+	if err != nil || len(body) == 0 {
 		writeTextResponse(w, http.StatusInternalServerError, "Unexpected Request Body")
 		return
 	}
